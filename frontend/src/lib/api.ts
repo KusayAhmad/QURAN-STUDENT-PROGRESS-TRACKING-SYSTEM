@@ -223,6 +223,35 @@ export interface AdminUser {
   updated_at: string;
 }
 
+// ---- Matrix ----
+export interface MatrixCell {
+  surah_id: number;
+  status: MemorizationStatus;
+  completion_percent: number;
+}
+
+export interface MatrixStudent {
+  id: string;
+  full_name: string;
+  class_id: string | null;
+  cells: MatrixCell[];
+}
+
+export interface MatrixView {
+  surahs: Surah[];
+  students: MatrixStudent[];
+}
+
+export const matrixApi = {
+  get: (params: { class_id?: string; include_archived?: boolean } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.class_id) qs.set("class_id", params.class_id);
+    if (params.include_archived) qs.set("include_archived", "true");
+    const suffix = qs.toString() ? `?${qs.toString()}` : "";
+    return request<MatrixView>(`/students/matrix${suffix}`);
+  },
+};
+
 export const admin = {
   listUsers: () => request<AdminUser[]>("/admin/users"),
   createUser: (data: {
