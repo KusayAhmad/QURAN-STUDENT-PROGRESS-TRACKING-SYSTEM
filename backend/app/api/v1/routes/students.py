@@ -1,4 +1,4 @@
-"""Student CRUD routes (tenant-scoped)."""
+"""Student CRUD routes (tenant-scoped, audited)."""
 from uuid import UUID
 
 from fastapi import APIRouter, Query, status
@@ -40,7 +40,7 @@ async def create_student(
     payload: StudentCreate, db: DbSession, user: SchoolUser
 ) -> StudentRead:
     student = await student_service.create_student(
-        db, school_id=user.school_id, data=payload
+        db, actor_id=user.id, school_id=user.school_id, data=payload
     )
     await db.commit()
     return StudentRead.model_validate(student)
@@ -61,7 +61,11 @@ async def update_student(
     student_id: UUID, payload: StudentUpdate, db: DbSession, user: SchoolUser
 ) -> StudentRead:
     student = await student_service.update_student(
-        db, school_id=user.school_id, student_id=student_id, data=payload
+        db,
+        actor_id=user.id,
+        school_id=user.school_id,
+        student_id=student_id,
+        data=payload,
     )
     await db.commit()
     return StudentRead.model_validate(student)
@@ -73,7 +77,7 @@ async def archive_student(
 ) -> StudentRead:
     """Soft delete (archive). Hard delete is intentionally not exposed."""
     student = await student_service.archive_student(
-        db, school_id=user.school_id, student_id=student_id
+        db, actor_id=user.id, school_id=user.school_id, student_id=student_id
     )
     await db.commit()
     return StudentRead.model_validate(student)

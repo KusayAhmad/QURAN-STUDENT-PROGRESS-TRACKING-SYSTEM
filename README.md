@@ -21,7 +21,10 @@ blueprint and roadmap.
 | MVP-2 | Evaluations (6-axis scoring) | Done |
 | MVP-2 | Observations / teacher notes | Done |
 | MVP-2 | Analytics (student / class / school KPIs) | Done |
-| MVP-3 | Audit logs, versioned history, admin UI | Not started |
+| MVP-3 | Audit logs on every mutation | Done |
+| MVP-3 | Versioned progress history + timeline endpoint | Done |
+| MVP-3 | Classes CRUD (admin-only writes) | Done |
+| MVP-3 | Admin user list + role-gated routes | Done |
 
 ## Repository layout
 
@@ -106,6 +109,11 @@ npm run dev
 | GET | `/api/v1/analytics/student/{id}/evaluation-trend` | Time-bucketed eval scores (`?bucket=day\|week\|month`) |
 | GET | `/api/v1/analytics/class/{id}` | Class-level aggregates |
 | GET | `/api/v1/analytics/school` | School-level aggregates (current user's school) |
+| GET | `/api/v1/students/{id}/surahs/{surah_id}/timeline` | Per-surah status history (every change recorded) |
+| GET, POST | `/api/v1/classes` | List classes / create (admin only) |
+| GET, PUT, DELETE | `/api/v1/classes/{id}` | Read for any school user; write admin only |
+| GET | `/api/v1/admin/audit-logs` | Audit trail, admin only, filter by entity_type/entity_id |
+| GET | `/api/v1/admin/users` | School user list, admin only |
 
 Full schemas live in Swagger at `/docs`.
 
@@ -124,7 +132,7 @@ cd backend
 pytest -q
 ```
 
-46 tests cover auth, students CRUD, progress upsert, evaluations (incl. updates), observations, analytics (incl. evaluation-trend), and cross-tenant isolation.
+64 tests cover auth, students CRUD, progress upsert + timeline, evaluations, observations, analytics, classes, admin user list, audit logs, and cross-tenant isolation.
 
 ## Roadmap
 

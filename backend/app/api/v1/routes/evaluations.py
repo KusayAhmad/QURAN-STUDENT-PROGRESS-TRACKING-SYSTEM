@@ -69,7 +69,11 @@ async def update_evaluation(
     user: SchoolUser,
 ) -> EvaluationRead:
     evaluation = await evaluation_service.update_evaluation(
-        db, school_id=user.school_id, evaluation_id=evaluation_id, data=payload
+        db,
+        actor_id=user.id,
+        school_id=user.school_id,
+        evaluation_id=evaluation_id,
+        data=payload,
     )
     await db.commit()
     return EvaluationRead.model_validate(evaluation)
@@ -80,6 +84,6 @@ async def delete_evaluation(
     evaluation_id: UUID, db: DbSession, user: SchoolUser
 ) -> None:
     await evaluation_service.delete_evaluation(
-        db, school_id=user.school_id, evaluation_id=evaluation_id
+        db, actor_id=user.id, school_id=user.school_id, evaluation_id=evaluation_id
     )
     await db.commit()
