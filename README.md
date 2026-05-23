@@ -36,6 +36,9 @@ blueprint and roadmap.
 | Phase-2 | Multi-student matrix grid (Excel UI) | Done |
 | Phase-2 | Excel/.xlsm bulk import | Done |
 | Phase-2 | In-app notifications (event-driven) | Done |
+| Phase-2 | PWA + RTL/Arabic i18n + offline write queue | Done |
+| Phase-2 | Rate limiting + class assignment UI | Done |
+| Phase-2 | Smart revision suggestions (rule-based, §12-C) | Done |
 
 ## Repository layout
 
@@ -147,6 +150,7 @@ After login the app stores tokens in `localStorage` so refresh keeps you in.
 | GET | `/api/v1/notifications/unread-count` | Cheap count for the bell badge |
 | POST | `/api/v1/notifications/{id}/read` | Mark single notification read |
 | POST | `/api/v1/notifications/read-all` | Mark all read (returns `{updated: N}`) |
+| GET | `/api/v1/students/{id}/revision-suggestions` | Top-N ranked surahs to revise (`?limit=N`, default 10, cap 50) |
 
 Full schemas live in Swagger at `/docs`.
 
@@ -165,7 +169,7 @@ cd backend
 pytest -q
 ```
 
-105 tests cover auth, students CRUD, progress upsert + timeline, evaluations, observations, analytics, classes, admin user list + CRUD, audit logs, Excel import, matrix view, notifications, and cross-tenant isolation.
+115 tests cover auth, students CRUD, progress upsert + timeline, evaluations, observations, analytics, classes, admin user list + CRUD, audit logs, Excel import, matrix view, notifications, revision suggestions, and cross-tenant isolation.
 
 ## Roadmap
 

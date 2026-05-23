@@ -110,6 +110,21 @@ export const en = {
   "pwa.offlineDesc":
     "Reads still work from cache. New changes can't be saved until you reconnect.",
 
+  // Revision suggestions (§12-C)
+  "revision.title": "Suggested revisions",
+  "revision.subtitle": "Surahs to revisit, ranked by urgency.",
+  "revision.empty": "No revisions needed right now. Great work!",
+  "revision.loading": "Computing suggestions...",
+  "revision.daysAgo": "{days}d ago",
+  "revision.neverReviewed": "Never reviewed",
+  "revision.completion": "{percent}% complete",
+  // Reason labels
+  "revision.reason.WEAK": "Weak — needs reinforcement",
+  "revision.reason.REVIEW_REQUIRED": "Marked for review",
+  "revision.reason.STALE_MASTERED": "Mastered but not refreshed lately",
+  "revision.reason.STALE_STRONG": "Strong but not refreshed lately",
+  "revision.reason.IN_PROGRESS": "Keep momentum on this surah",
+
   // Language switcher
   "lang.toggle": "Language",
 } as const;
