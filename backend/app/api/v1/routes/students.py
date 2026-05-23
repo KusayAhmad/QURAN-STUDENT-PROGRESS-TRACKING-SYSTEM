@@ -1,13 +1,33 @@
-"""Student CRUD routes (tenant-scoped, audited)."""
+"""Student CRUD routes (tenant-scoped, audited) + bulk matrix view."""
 from uuid import UUID
 
 from fastapi import APIRouter, Query, status
 
 from app.api.deps import DbSession, SchoolUser
+from app.schemas.matrix import MatrixView
 from app.schemas.student import StudentCreate, StudentRead, StudentUpdate
-from app.services import student_service
+from app.services import matrix_service, student_service
 
 router = APIRouter(prefix="/students", tags=["students"])
+
+
+@router.get("/matrix", response_model=MatrixView)
+async def matrix(
+    db: DbSession,
+    user: SchoolUser,
+    class_id: UUID | None = Query(default=None),
+    include_archived: bool = Query(default=False),
+) -> MatrixView:
+    """Bulk Quran×Student grid in one round-trip.
+
+    Replaces N+1 calls (one /progress per student) when rendering the matrix.
+    """
+    return await matrix_service.get_matrix(
+        db,
+        school_id=user.school_id,
+        class_id=class_id,
+        include_archived=include_archived,
+    )
 
 
 @router.get("", response_model=dict)

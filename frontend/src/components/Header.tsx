@@ -5,9 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { useAuthStore } from "@/store/auth";
 
-const NAV: { href: string; label: string }[] = [
+const NAV: { href: string; label: string; adminOnly?: boolean }[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/students", label: "Students" },
+  { href: "/matrix", label: "Matrix" },
+  { href: "/admin/users", label: "Users", adminOnly: true },
+  { href: "/admin/import", label: "Import", adminOnly: true },
 ];
 
 export function Header() {
@@ -28,7 +31,7 @@ export function Header() {
           Quran Progress
         </Link>
         <nav className="qp-nav">
-          {NAV.map((item) => {
+          {NAV.filter((n) => !n.adminOnly || user?.role === "ADMIN").map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link

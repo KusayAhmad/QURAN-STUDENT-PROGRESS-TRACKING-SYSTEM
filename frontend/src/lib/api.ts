@@ -21,6 +21,7 @@ import type {
   StudentGender,
   Surah,
   TokenPair,
+  UserRole,
 } from "@/lib/types";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -259,6 +260,101 @@ export const analytics = {
   student: (studentId: string) =>
     request<StudentAnalytics>(`/analytics/student/${studentId}`),
   school: () => request<SchoolAnalytics>("/analytics/school"),
+};
+
+// ---- Admin ----
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  is_active: boolean;
+  school_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ImportResult {
+  students_created: number;
+  students_matched: number;
+  progress_recorded: number;
+  errors: { sheet: string; row: number; message: string }[];
+}
+
+// ---- Matrix ----
+export interface MatrixCell {
+  surah_id: number;
+  status: MemorizationStatus;
+  completion_percent: number;
+}
+
+export interface MatrixStudent {
+  id: string;
+  full_name: string;
+  class_id: string | null;
+  cells: MatrixCell[];
+}
+
+export interface MatrixView {
+  surahs: Surah[];
+  students: MatrixStudent[];
+}
+
+export const matrixApi = {
+  get: (params: { class_id?: string; include_archived?: boolean } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.class_id) qs.set("class_id", params.class_id);
+    if (params.include_archived) qs.set("include_archived", "true");
+    const suffix = qs.toString() ? `?${qs.toString()}` : "";
+    return request<MatrixView>(`/students/matrix${suffix}`);
+  },
+};
+
+export const admin = {
+  listUsers: () => request<AdminUser[]>("/admin/users"),
+  createUser: (data: {
+    name: string;
+    email: string;
+    password: string;
+    role?: UserRole;
+  }) => request<AdminUser>("/admin/users", { method: "POST", json: data }),
+  updateUser: (
+    userId: string,
+    data: {
+      name?: string;
+      role?: UserRole;
+      is_active?: boolean;
+      password?: string;
+    },
+  ) =>
+    request<AdminUser>(`/admin/users/${userId}`, { method: "PUT", json: data }),
+  // The import endpoint is multipart, so it needs its own fetch path that
+  // skips the JSON Content-Type the request() helper would otherwise set.
+  importExcel: async (file: File): Promise<ImportResult> => {
+    const token = useAuthStore.getState().accessToken;
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`${BASE}/api/v1/admin/import`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: fd,
+    });
+    if (res.status === 401) useAuthStore.getState().clear();
+    const text = await res.text();
+    let parsed: unknown = null;
+    try {
+      parsed = text ? JSON.parse(text) : null;
+    } catch {
+      if (!res.ok) throw new ApiError(res.status, null, `HTTP ${res.status}`);
+      throw new ApiError(res.status, null, "Invalid JSON response");
+    }
+    if (!res.ok) {
+      const detail = parsed?.detail ?? `HTTP ${res.status}`;
+      const msg = typeof detail === "string" ? detail : JSON.stringify(detail);
+      throw new ApiError(res.status, parsed, msg);
+    }
+    return parsed as ImportResult;
+  },
 };
 
 export { ApiError };

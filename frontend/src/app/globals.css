@@ -370,6 +370,82 @@ button.qp-status:hover {
   font-size: 0.85rem;
 }
 
+/* ---- Multi-student matrix grid (Excel replacement) ---- */
+.qp-grid-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: auto;
+  max-height: 75vh;
+  position: relative;
+}
+.qp-grid-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: max-content;
+  font-size: 0.75rem;
+}
+.qp-grid-table th,
+.qp-grid-table td {
+  border: 1px solid var(--color-border);
+  padding: 0;
+  text-align: center;
+  width: 28px;
+  height: 28px;
+  background: var(--color-surface);
+}
+.qp-grid-table th.qp-grid-corner,
+.qp-grid-table th.qp-grid-rowhead,
+.qp-grid-table td.qp-grid-rowhead {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #fafafa;
+  text-align: left;
+  padding: 4px 12px;
+  width: 200px;
+  min-width: 200px;
+  font-weight: 500;
+  border-right: 2px solid var(--color-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qp-grid-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f3f4f6;
+  font-weight: 600;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.qp-grid-table thead th.qp-grid-corner {
+  z-index: 3;
+  background: #f3f4f6;
+}
+.qp-grid-table td.qp-grid-rowhead a {
+  color: var(--color-text);
+}
+.qp-grid-cell {
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+  font-size: 0.7rem;
+  color: white;
+  font-weight: 600;
+}
+.qp-grid-cell:hover {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+.qp-grid-cell-empty {
+  background: var(--color-surface);
+  color: #d1d5db;
+}
+
 /* ---- Tabs ---- */
 .qp-tabs {
   display: flex;
