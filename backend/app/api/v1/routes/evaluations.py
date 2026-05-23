@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Query, status
 
 from app.api.deps import DbSession, SchoolUser
-from app.schemas.evaluation import EvaluationCreate, EvaluationRead
+from app.schemas.evaluation import EvaluationCreate, EvaluationRead, EvaluationUpdate
 from app.services import evaluation_service
 
 router = APIRouter(tags=["evaluations"])
@@ -61,11 +61,29 @@ async def get_evaluation(
     return EvaluationRead.model_validate(evaluation)
 
 
+@router.put("/evaluations/{evaluation_id}", response_model=EvaluationRead)
+async def update_evaluation(
+    evaluation_id: UUID,
+    payload: EvaluationUpdate,
+    db: DbSession,
+    user: SchoolUser,
+) -> EvaluationRead:
+    evaluation = await evaluation_service.update_evaluation(
+        db,
+        actor_id=user.id,
+        school_id=user.school_id,
+        evaluation_id=evaluation_id,
+        data=payload,
+    )
+    await db.commit()
+    return EvaluationRead.model_validate(evaluation)
+
+
 @router.delete("/evaluations/{evaluation_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_evaluation(
     evaluation_id: UUID, db: DbSession, user: SchoolUser
 ) -> None:
     await evaluation_service.delete_evaluation(
-        db, school_id=user.school_id, evaluation_id=evaluation_id
+        db, actor_id=user.id, school_id=user.school_id, evaluation_id=evaluation_id
     )
     await db.commit()

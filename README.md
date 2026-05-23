@@ -21,7 +21,21 @@ blueprint and roadmap.
 | MVP-2 | Evaluations (6-axis scoring) | Done |
 | MVP-2 | Observations / teacher notes | Done |
 | MVP-2 | Analytics (student / class / school KPIs) | Done |
-| MVP-3 | Audit logs, versioned history, admin UI | Not started |
+| MVP-3 | Audit logs on every mutation | Done |
+| MVP-3 | Versioned progress history + timeline endpoint | Done |
+| MVP-3 | Classes CRUD (admin-only writes) | Done |
+| MVP-3 | Admin user list + role-gated routes | Done |
+| Frontend | Login + auth (JWT in Zustand) | Done |
+| Frontend | Dashboard (school-wide KPIs) | Done |
+| Frontend | Students list + create + archive | Done |
+| Frontend | Student profile with Quran matrix UI | Done |
+| Frontend | Evaluations panel (6-axis form, list, delete) | Done |
+| Frontend | Observations panel (typed notes) | Done |
+| Frontend | Per-surah timeline modal | Done |
+| Phase-2 | Admin user CRUD (create/disable/role/password) | Done |
+| Phase-2 | Multi-student matrix grid (Excel UI) | Done |
+| Phase-2 | Excel/.xlsm bulk import | Done |
+| Phase-2 | In-app notifications (event-driven) | Done |
 
 ## Repository layout
 
@@ -77,9 +91,24 @@ uvicorn app.main:app --reload
 
 ```bash
 cd frontend
+cp .env.local.example .env.local   # points at http://localhost:8000 by default
 npm install
-npm run dev
+npm run dev                        # http://localhost:3000
 ```
+
+The login page accepts the demo credentials seeded by the backend
+(`teacher@example.com` / `teacher123!` or `admin@example.com` / `admin123!`).
+After login the app stores tokens in `localStorage` so refresh keeps you in.
+
+### Frontend stack
+- Next.js 16 + React 19 (App Router, client components)
+- TanStack Query for server state, Zustand for auth tokens
+- Plain CSS — no Tailwind/MUI for the MVP. The Quran matrix is rendered
+  as a simple list of 114 rows (one per surah) with a click-to-edit
+  status pill, which is faster to ship than a real DataGrid and
+  performs fine for a single-student view. A multi-student matrix
+  (`/matrix`) is also implemented, rendering the full 114-surah ×
+  multi-student grid.
 
 ## API summary (v1)
 
@@ -99,12 +128,26 @@ npm run dev
 | POST | `/api/v1/students/{id}/progress` | Upsert (student + surah) progress |
 | PUT | `/api/v1/progress/{id}` | Partial update by progress id |
 | GET, POST | `/api/v1/students/{id}/evaluations` | List or create evaluation (6-axis scoring) |
-| GET, DELETE | `/api/v1/evaluations/{id}` | Get / delete evaluation |
+| GET, PUT, DELETE | `/api/v1/evaluations/{id}` | Get / update / delete evaluation |
 | GET, POST | `/api/v1/students/{id}/observations` | List or create teacher note |
 | DELETE | `/api/v1/observations/{id}` | Delete observation |
 | GET | `/api/v1/analytics/student/{id}` | Per-student KPIs (mastery %, counts, recent eval avg) |
+| GET | `/api/v1/analytics/student/{id}/evaluation-trend` | Time-bucketed eval scores (`?bucket=day\|week\|month`) |
 | GET | `/api/v1/analytics/class/{id}` | Class-level aggregates |
 | GET | `/api/v1/analytics/school` | School-level aggregates (current user's school) |
+| GET | `/api/v1/students/{id}/surahs/{surah_id}/timeline` | Per-surah status history (every change recorded) |
+| GET, POST | `/api/v1/classes` | List classes / create (admin only) |
+| GET, PUT, DELETE | `/api/v1/classes/{id}` | Read for any school user; write admin only |
+| GET | `/api/v1/admin/audit-logs` | Audit trail, admin only, filter by entity_type/entity_id |
+| GET | `/api/v1/admin/users` | School user list, admin only |
+| POST | `/api/v1/admin/users` | Create user (admin only) |
+| PUT | `/api/v1/admin/users/{id}` | Update user (admin only) |
+| POST | `/api/v1/admin/import` | Bulk Excel/.xlsm import (admin only) |
+| GET | `/api/v1/students/matrix` | Bulk Quran×Student grid in one query |
+| GET | `/api/v1/notifications` | Per-user inbox (filterable by `?unread_only=true`) |
+| GET | `/api/v1/notifications/unread-count` | Cheap count for the bell badge |
+| POST | `/api/v1/notifications/{id}/read` | Mark single notification read |
+| POST | `/api/v1/notifications/read-all` | Mark all read (returns `{updated: N}`) |
 
 Full schemas live in Swagger at `/docs`.
 
@@ -123,7 +166,7 @@ cd backend
 pytest -q
 ```
 
-33 tests cover auth, students CRUD, progress upsert, evaluations, observations, and analytics paths.
+105 tests cover auth, students CRUD, progress upsert + timeline, evaluations, observations, analytics, classes, admin user list + CRUD, audit logs, Excel import, matrix view, notifications, and cross-tenant isolation.
 
 ## Roadmap
 

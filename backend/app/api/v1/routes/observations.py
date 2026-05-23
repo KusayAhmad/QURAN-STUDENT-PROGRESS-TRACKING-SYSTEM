@@ -58,6 +58,6 @@ async def delete_observation(
     observation_id: UUID, db: DbSession, user: SchoolUser
 ) -> None:
     await observation_service.delete_observation(
-        db, school_id=user.school_id, observation_id=observation_id
+        db, actor_id=user.id, school_id=user.school_id, observation_id=observation_id
     )
     await db.commit()

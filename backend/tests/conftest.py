@@ -128,3 +128,64 @@ async def seeded_surahs(session_factory):
 def _ensure_anyio_backend():
     """pytest-asyncio in auto mode handles loops; this is a placeholder hook."""
     return None
+
+
+
+@pytest_asyncio.fixture
+async def second_school_teacher(client, session_factory):
+    """Create a SECOND school + teacher and return an authenticated httpx client.
+
+    Useful for asserting cross-tenant isolation: students/evaluations/etc.
+    created by School A must be invisible to School B.
+    """
+    async with session_factory() as db:
+        other_school = School(name="Other School", timezone="UTC")
+        db.add(other_school)
+        await db.flush()
+        other_teacher = User(
+            name="Other Teacher",
+            email="other-teacher@example.com",
+            password_hash=hash_password("other-pass-456"),
+            role=UserRole.TEACHER,
+            school_id=other_school.id,
+        )
+        db.add(other_teacher)
+        await db.commit()
+        await db.refresh(other_school)
+        await db.refresh(other_teacher)
+
+    # Login as the other teacher on a fresh client header. We reuse the same
+    # AsyncClient so it shares the dependency override; just override the
+    # Authorization header for the duration of this fixture.
+    login = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "other-teacher@example.com", "password": "other-pass-456"},
+    )
+    assert login.status_code == 200, login.text
+    token = login.json()["access_token"]
+
+    class OtherClient:
+        """Wraps the shared httpx client so this fixture does not stomp on the
+        primary `auth_client`'s Authorization header."""
+
+        def __init__(self, c, token):
+            self._c = c
+            self._h = {"Authorization": f"Bearer {token}"}
+
+        async def get(self, url, **kw):
+            kw.setdefault("headers", {}).update(self._h)
+            return await self._c.get(url, **kw)
+
+        async def post(self, url, **kw):
+            kw.setdefault("headers", {}).update(self._h)
+            return await self._c.post(url, **kw)
+
+        async def put(self, url, **kw):
+            kw.setdefault("headers", {}).update(self._h)
+            return await self._c.put(url, **kw)
+
+        async def delete(self, url, **kw):
+            kw.setdefault("headers", {}).update(self._h)
+            return await self._c.delete(url, **kw)
+
+    return OtherClient(client, token)

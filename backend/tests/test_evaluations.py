@@ -95,3 +95,48 @@ async def test_get_and_delete_evaluation(auth_client):
 
     again = await auth_client.get(f"/api/v1/evaluations/{eid}")
     assert again.status_code == 404
+
+
+
+async def test_update_evaluation(auth_client):
+    sid = await _create_student(auth_client)
+    created = (
+        await auth_client.post(
+            f"/api/v1/students/{sid}/evaluations",
+            json={"type": "OTHER", "exam_date": "2026-05-12", "overall_score": 70},
+        )
+    ).json()
+    eid = created["id"]
+
+    upd = await auth_client.put(
+        f"/api/v1/evaluations/{eid}",
+        json={"overall_score": 88, "notes": "Re-graded after appeal"},
+    )
+    assert upd.status_code == 200, upd.text
+    body = upd.json()
+    assert body["overall_score"] == 88
+    assert body["notes"] == "Re-graded after appeal"
+    assert body["type"] == "OTHER"  # unchanged
+    assert body["exam_date"] == "2026-05-12"  # unchanged
+
+
+async def test_update_evaluation_score_validation(auth_client):
+    sid = await _create_student(auth_client)
+    created = (
+        await auth_client.post(
+            f"/api/v1/students/{sid}/evaluations",
+            json={"type": "OTHER", "exam_date": "2026-05-12", "overall_score": 70},
+        )
+    ).json()
+    res = await auth_client.put(
+        f"/api/v1/evaluations/{created['id']}", json={"tajweed_score": 200}
+    )
+    assert res.status_code == 422
+
+
+async def test_update_evaluation_unknown(auth_client):
+    res = await auth_client.put(
+        "/api/v1/evaluations/00000000-0000-0000-0000-000000000000",
+        json={"notes": "x"},
+    )
+    assert res.status_code == 404

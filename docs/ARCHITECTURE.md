@@ -92,7 +92,7 @@ intentionally not exposed — student history must survive.
 
 The custom `GUID` SQLAlchemy type uses native PostgreSQL `UUID` in production
 and `CHAR(36)` in SQLite tests. This lets the entire test suite run in-memory
-in ~2 seconds without a Postgres container.
+in ~10 seconds without a Postgres container.
 
 ### Token strategy
 
@@ -101,7 +101,25 @@ in ~2 seconds without a Postgres container.
 - Token type is encoded in the `type` claim so a stolen access token cannot be
   used at the refresh endpoint and vice versa.
 
-## 7. Database schema (current, MVP-2)
+### Audit by explicit call (MVP-3)
+
+Every mutating service function calls `audit_service.record(...)` after the
+write. We considered SQLAlchemy `before_flush` event listeners, but the
+explicit-call pattern is easier to reason about: actor is unambiguous, diffs
+are human-readable JSON, and tests can assert on audit records without
+ContextVar tricks. The trade-off is forgetting to call `record()` in a new
+mutation — caught in tests for the happy path.
+
+### Append-only progress history (MVP-3)
+
+`memorization_progress` holds the *current* state. `progress_history` holds
+every prior version, written by the same service that updates the live row.
+This is what powers the per-surah timeline endpoint
+(blueprint §12-A: `Baqarah: Weak → Review → Strong → Mastered`). Hard delete
+of `memorization_progress` cascades to history; we currently never hard-delete
+progress, so history is effectively immutable.
+
+## 7. Database schema (current, MVP-3)
 
 | Table | Purpose | Key constraints |
 |---|---|---|
@@ -113,8 +131,9 @@ in ~2 seconds without a Postgres container.
 | `memorization_progress` | Core (student, surah) row | UNIQUE(student_id, surah_id), CHECK score 0–100, CHECK percent 0–100 |
 | `evaluations` | Exam scoring (6 axes + overall + type + date) | CHECK each score 0–100, FK student, FK teacher |
 | `observations` | Typed teacher notes | FK student, FK teacher |
-
-Tables planned for later phases: `audit_logs`, `progress_history`.
+| `progress_history` | Append-only snapshot per progress write | FK progress, FK teacher |
+| `audit_logs` | Append-only mutation trail (actor, action, old/new JSON) | FK actor, FK school |
+| `notifications` | Per-user inbox; produced server-side from event triggers | FK recipient_user_id, FK school_id (nullable) |
 
 ## 7a. Analytics definitions (MVP-2)
 
@@ -150,8 +169,8 @@ just require `SchoolUser` (any role + has school).
 | Phase | Slice | Adds |
 |---|---|---|
 | **MVP-1** ✓ | Auth + Students + Surahs + Progress | The Excel replacement |
-| **MVP-2** ✓ | Evaluations + Observations + Analytics | 6-axis exam scoring, typed teacher notes, student/class/school KPIs |
-| MVP-3 | Audit logs + Versioned progress history + Admin UI + class CRUD endpoints | Production-ready observability |
+| **MVP-2** ✓ | Evaluations + Observations + Analytics | 6-axis exam scoring, typed teacher notes, student/class/school KPIs, evaluation-trend time series, evaluation update endpoint |
+| **MVP-3** ✓ | Audit logs + Versioned progress history + Admin endpoints | Per-mutation audit trail, per-surah status timeline, classes CRUD, admin user list |
 | Phase-2 | Multi-school admin, notifications, PWA, Excel import | Scale & onboarding |
 | Phase-3 | AI revision suggestions, predictive risk, parent/student portals | Differentiators |
 
@@ -161,18 +180,90 @@ just require `SchoolUser` (any role + has school).
   ayah-level mapping (so a query like "all ayahs in juz 1" works) is deferred
   to a future migration.
 - No rate limiting yet (planned: `slowapi`).
-- No audit logging yet (MVP-3).
 - No notifications (Celery + email/push planned for Phase-2).
 - No analytics caching yet — every `/analytics/...` request hits Postgres.
-  Redis-backed read-through caching is planned for MVP-3 once query volume
+  Redis-backed read-through caching is planned for Phase-2 once query volume
   warrants it.
-- No public API for managing classes yet (only direct DB / future admin UI).
-  `/analytics/class/{id}` works against existing classes, but classes can only
-  be created at seed time or via SQL until MVP-3.
-- Frontend is a skeleton — the Quran matrix UI, login form, and student
-  profile screens are not yet built.
+- Admin user management (create, update role/status, password reset) is
+  implemented via `POST /admin/users` and `PUT /admin/users/{id}`.
+- Frontend is fully functional — login, dashboard, student profiles, Quran
+  matrix (single-student and multi-student grid), evaluations, observations,
+  classes, admin user CRUD, Excel import, and notifications are all built.
 
-## 11. Source of truth
+
+
+## 11. Frontend (current state)
+
+Built on Next.js 16 + React 19 with the App Router, in pure client-component
+mode for simplicity. The frontend talks to the backend via a hand-written
+typed fetch wrapper (`src/lib/api.ts`); we deliberately did not generate
+types from the OpenAPI spec to avoid a build-time dependency.
+
+Pages:
+- `/login` — email + password against `/auth/login`, tokens persisted in
+  `localStorage` via Zustand.
+- `/dashboard` — school KPI tiles + status histogram.
+- `/students` — list, search, archive filter, modal-based create.
+- `/students/[id]` — three tabs:
+  1. *Memorization matrix*: 114 rows, click any status pill to edit.
+     Click "History" to open the per-surah timeline modal.
+  2. *Evaluations*: 6-axis form + list + delete.
+  3. *Observations*: typed teacher notes.
+
+Decisions worth flagging:
+- No Tailwind / no MUI. Hand-rolled CSS in `globals.css`. Fast to ship and
+  trivial to swap later if we add MUI DataGrid for a multi-student matrix.
+- Auth guard is client-side only (`AuthGuard` component reads the Zustand
+  store and redirects). Server-side auth would require shipping the token
+  via cookies; deferred.
+- The "matrix" is rendered as a vertical list of 114 rows for one student,
+  not the original Excel two-axis grid. Single-student is the more common
+  view in a school day; the multi-student grid (rows = students, cols = 114
+  surahs) needs a virtualized DataGrid and is a Phase-2 add.
+
+## 12. Source of truth
 
 If this document and the code disagree, the code wins. Keep this document in
 sync via PR.
+
+
+
+## 12. Notifications (current state)
+
+In-app only for the moment. The schema and the `_deliver()` indirection in
+`notification_service` are designed so adding email and push channels later
+is purely additive — no changes to the call sites that produce
+notifications.
+
+### Triggers (event-driven, fire synchronously inside the service that
+caused the event)
+
+| Trigger | Recipients | Type |
+|---|---|---|
+| Student created | All admins in school, minus actor | `STUDENT_ADDED` |
+| Progress STRONG/MASTERED → WEAK/REVIEW_REQUIRED | Class teacher (if any) + all admins, minus actor | `PROGRESS_REGRESSED` |
+| Evaluation `overall_score < 60` | Class teacher (if any) + all admins, minus actor | `LOW_EVALUATION` |
+| (Reserved) Stale progress > 30 days | Class teacher / admins | `OVERDUE_REVIEW` (deferred) |
+
+### Why event-driven, not Celery beat
+
+For MVP, notifications fire on the request that caused the change. This:
+
+- Has no external infrastructure (no Redis, no broker)
+- Stays consistent (a notification is in the same DB transaction as the
+  event that produced it; either both commit or neither does)
+- Returns useful inbox state immediately
+
+The "overdue review" trigger genuinely needs a scheduler — that's the gate
+for adding Celery + beat in a Phase-2 slice.
+
+### Recipient resolution
+
+`_recipients_for_student()` builds the recipient set as:
+
+```
+recipients = ({class_teacher} ∪ {admins in school}) \ {actor}
+```
+
+The actor is always excluded so a teacher who downgrades a student's status
+doesn't get pinged for their own action.
