@@ -56,11 +56,27 @@ async function request<T>(
     body = JSON.stringify(init.json);
   }
 
-  const res = await fetch(`${BASE}/api/v1${path}`, {
-    ...init,
-    headers,
-    body,
-  });
+  const url = `${BASE}/api/v1${path}`;
+  const fetchInit: RequestInit = { ...init, headers, body };
+
+  // For mutations, use the offline queue wrapper so network failures while
+  // offline get queued instead of throwing.
+  const isGet = !init.method || init.method === "GET";
+  let res: Response;
+
+  if (!isGet) {
+    const { fetchWithOfflineQueue } = await import("@/lib/offlineRequest");
+    const result = await fetchWithOfflineQueue(url, fetchInit);
+    if (result === "QUEUED") {
+      // The mutation was queued for later replay. Return undefined to the
+      // caller — TanStack Query's onSuccess will fire, which is correct
+      // (the user's intent is captured). The SyncManager will replay later.
+      return undefined as T;
+    }
+    res = result;
+  } else {
+    res = await fetch(url, fetchInit);
+  }
 
   if (res.status === 401) {
     useAuthStore.getState().clear();

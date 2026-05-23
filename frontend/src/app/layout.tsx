@@ -5,6 +5,7 @@ import { I18nProvider } from "@/components/I18nProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { PWAClient } from "@/components/PWAClient";
 import { QueryProvider } from "@/components/QueryProvider";
+import { SyncManager } from "@/components/SyncManager";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <I18nProvider>
           <QueryProvider>
             <OfflineBanner />
+            <SyncManager />
             <PWAClient />
             {children}
           </QueryProvider>
