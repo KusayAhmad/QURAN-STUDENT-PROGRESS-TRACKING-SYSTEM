@@ -25,6 +25,13 @@ blueprint and roadmap.
 | MVP-3 | Versioned progress history + timeline endpoint | Done |
 | MVP-3 | Classes CRUD (admin-only writes) | Done |
 | MVP-3 | Admin user list + role-gated routes | Done |
+| Frontend | Login + auth (JWT in Zustand) | Done |
+| Frontend | Dashboard (school-wide KPIs) | Done |
+| Frontend | Students list + create + archive | Done |
+| Frontend | Student profile with Quran matrix UI | Done |
+| Frontend | Evaluations panel (6-axis form, list, delete) | Done |
+| Frontend | Observations panel (typed notes) | Done |
+| Frontend | Per-surah timeline modal | Done |
 
 ## Repository layout
 
@@ -80,9 +87,24 @@ uvicorn app.main:app --reload
 
 ```bash
 cd frontend
+cp .env.local.example .env.local   # points at http://localhost:8000 by default
 npm install
-npm run dev
+npm run dev                        # http://localhost:3000
 ```
+
+The login page accepts the demo credentials seeded by the backend
+(`teacher@example.com` / `teacher123!` or `admin@example.com` / `admin123!`).
+After login the app stores tokens in `localStorage` so refresh keeps you in.
+
+### Frontend stack
+- Next.js 16 + React 19 (App Router, client components)
+- TanStack Query for server state, Zustand for auth tokens
+- Plain CSS — no Tailwind/MUI for the MVP. The Quran matrix is rendered
+  as a simple list of 114 rows (one per surah) with a click-to-edit
+  status pill, which is faster to ship than a real DataGrid and
+  performs fine for a single-student view. A multi-student matrix
+  (à la the original Excel) would be a future addition on top of MUI
+  DataGrid.
 
 ## API summary (v1)
 

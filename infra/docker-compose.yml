@@ -35,6 +35,11 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        # The frontend reads NEXT_PUBLIC_API_URL at build time. We set it to
+        # localhost:8000 because the browser (not the container) is the one
+        # that hits the API.
+        NEXT_PUBLIC_API_URL: http://localhost:8000
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     ports:
