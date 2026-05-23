@@ -4,6 +4,7 @@ from app.models.class_ import Class
 from app.models.evaluation import Evaluation, EvaluationType
 from app.models.memorization_progress import MemorizationProgress, MemorizationStatus
 from app.models.mixins import TimestampMixin, UUIDPKMixin
+from app.models.notification import Notification, NotificationType
 from app.models.observation import Observation, ObservationType
 from app.models.progress_history import ProgressHistory
 from app.models.school import School
@@ -20,6 +21,8 @@ __all__ = [
     "EvaluationType",
     "MemorizationProgress",
     "MemorizationStatus",
+    "Notification",
+    "NotificationType",
     "Observation",
     "ObservationType",
     "ProgressHistory",

@@ -300,4 +300,46 @@ export const admin = {
   },
 };
 
+// ---- Notifications ----
+export type NotificationType =
+  | "PROGRESS_REGRESSED"
+  | "LOW_EVALUATION"
+  | "STUDENT_ADDED"
+  | "OVERDUE_REVIEW"
+  | "MANUAL";
+
+export interface Notification {
+  id: string;
+  recipient_user_id: string;
+  school_id: string | null;
+  type: NotificationType;
+  title: string;
+  message: string;
+  payload: Record<string, unknown> | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface PaginatedNotifications {
+  total: number;
+  limit: number;
+  offset: number;
+  items: Notification[];
+}
+
+export const notifications = {
+  list: (params: { unread_only?: boolean; limit?: number; offset?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.unread_only) qs.set("unread_only", "true");
+    qs.set("limit", String(params.limit ?? 50));
+    qs.set("offset", String(params.offset ?? 0));
+    return request<PaginatedNotifications>(`/notifications?${qs.toString()}`);
+  },
+  unreadCount: () => request<{ unread: number }>("/notifications/unread-count"),
+  markRead: (id: string) =>
+    request<Notification>(`/notifications/${id}/read`, { method: "POST" }),
+  markAllRead: () =>
+    request<{ updated: number }>("/notifications/read-all", { method: "POST" }),
+};
+
 export { ApiError };

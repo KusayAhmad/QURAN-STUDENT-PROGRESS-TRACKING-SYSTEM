@@ -32,6 +32,10 @@ blueprint and roadmap.
 | Frontend | Evaluations panel (6-axis form, list, delete) | Done |
 | Frontend | Observations panel (typed notes) | Done |
 | Frontend | Per-surah timeline modal | Done |
+| Phase-2 | Admin user CRUD (create/disable/role/password) | Done |
+| Phase-2 | Multi-student matrix grid (Excel UI) | Done |
+| Phase-2 | Excel/.xlsm bulk import | Done |
+| Phase-2 | In-app notifications (event-driven) | Done |
 
 ## Repository layout
 
@@ -136,6 +140,13 @@ After login the app stores tokens in `localStorage` so refresh keeps you in.
 | GET, PUT, DELETE | `/api/v1/classes/{id}` | Read for any school user; write admin only |
 | GET | `/api/v1/admin/audit-logs` | Audit trail, admin only, filter by entity_type/entity_id |
 | GET | `/api/v1/admin/users` | School user list, admin only |
+| POST, PUT | `/api/v1/admin/users` | Create / update users (admin only) |
+| POST | `/api/v1/admin/import` | Bulk Excel/.xlsm import (admin only) |
+| GET | `/api/v1/students/matrix` | Bulk Quran×Student grid in one query |
+| GET | `/api/v1/notifications` | Per-user inbox (filterable by `?unread_only=true`) |
+| GET | `/api/v1/notifications/unread-count` | Cheap count for the bell badge |
+| POST | `/api/v1/notifications/{id}/read` | Mark single notification read |
+| POST | `/api/v1/notifications/read-all` | Mark all read (returns `{updated: N}`) |
 
 Full schemas live in Swagger at `/docs`.
 
@@ -154,7 +165,7 @@ cd backend
 pytest -q
 ```
 
-64 tests cover auth, students CRUD, progress upsert + timeline, evaluations, observations, analytics, classes, admin user list, audit logs, and cross-tenant isolation.
+105 tests cover auth, students CRUD, progress upsert + timeline, evaluations, observations, analytics, classes, admin user list + CRUD, audit logs, Excel import, matrix view, notifications, and cross-tenant isolation.
 
 ## Roadmap
 

@@ -13,7 +13,7 @@ from app.models.memorization_progress import MemorizationProgress
 from app.models.progress_history import ProgressHistory
 from app.repositories import progress_history_repo, progress_repo, student_repo, surah_repo
 from app.schemas.progress import ProgressUpdate, ProgressUpsert
-from app.services import audit_service
+from app.services import audit_service, notification_service
 
 _AUDIT_FIELDS = (
     "student_id",
@@ -109,6 +109,7 @@ async def upsert_progress(
         )
         return new_row
 
+    old_status = existing.status
     old_value = audit_service.snapshot(existing, _AUDIT_FIELDS)
 
     existing.status = data.status
@@ -130,6 +131,14 @@ async def upsert_progress(
         entity_id=existing.id,
         old_value=old_value,
         new_value=audit_service.snapshot(existing, _AUDIT_FIELDS),
+    )
+    await notification_service.notify_progress_regressed(
+        db,
+        student=student,
+        old_status=old_status,
+        new_status=existing.status,
+        surah_name=surah.surah_name_en,
+        actor_id=teacher_id,
     )
     return existing
 
@@ -154,6 +163,7 @@ async def update_progress(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Progress not found")
 
     old_value = audit_service.snapshot(progress, _AUDIT_FIELDS)
+    old_status = progress.status
 
     payload = data.model_dump(exclude_unset=True)
     for field, value in payload.items():
@@ -172,5 +182,15 @@ async def update_progress(
         entity_id=progress.id,
         old_value=old_value,
         new_value=audit_service.snapshot(progress, _AUDIT_FIELDS),
+    )
+    # Lookup surah name for the notification (cheap — single PK query, cached).
+    surah = await surah_repo.get_by_id(db, progress.surah_id)
+    await notification_service.notify_progress_regressed(
+        db,
+        student=student,
+        old_status=old_status,
+        new_status=progress.status,
+        surah_name=surah.surah_name_en if surah else f"Surah #{progress.surah_id}",
+        actor_id=teacher_id,
     )
     return progress

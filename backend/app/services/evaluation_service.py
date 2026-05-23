@@ -8,7 +8,7 @@ from app.models.audit_log import AuditAction, AuditEntityType
 from app.models.evaluation import Evaluation
 from app.repositories import evaluation_repo, student_repo
 from app.schemas.evaluation import EvaluationCreate, EvaluationUpdate
-from app.services import audit_service
+from app.services import audit_service, notification_service
 
 _AUDIT_FIELDS = (
     "student_id",
@@ -77,6 +77,9 @@ async def create_evaluation(
         entity_type=AuditEntityType.EVALUATION,
         entity_id=evaluation.id,
         new_value=audit_service.snapshot(evaluation, _AUDIT_FIELDS),
+    )
+    await notification_service.notify_low_evaluation(
+        db, student=student, evaluation=evaluation, actor_id=teacher_id
     )
     return evaluation
 

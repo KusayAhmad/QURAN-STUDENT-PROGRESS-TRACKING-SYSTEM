@@ -8,7 +8,7 @@ from app.models.audit_log import AuditAction, AuditEntityType
 from app.models.student import Student, StudentStatus
 from app.repositories import student_repo
 from app.schemas.student import StudentCreate, StudentUpdate
-from app.services import audit_service
+from app.services import audit_service, notification_service
 
 _AUDIT_FIELDS = (
     "full_name",
@@ -73,6 +73,9 @@ async def create_student(
         entity_type=AuditEntityType.STUDENT,
         entity_id=student.id,
         new_value=audit_service.snapshot(student, _AUDIT_FIELDS),
+    )
+    await notification_service.notify_student_added(
+        db, student=student, actor_id=actor_id
     )
     return student
 
