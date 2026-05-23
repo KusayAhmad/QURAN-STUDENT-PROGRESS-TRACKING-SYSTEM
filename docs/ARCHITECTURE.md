@@ -101,7 +101,7 @@ in ~2 seconds without a Postgres container.
 - Token type is encoded in the `type` claim so a stolen access token cannot be
   used at the refresh endpoint and vice versa.
 
-## 7. Database schema (current, MVP-1)
+## 7. Database schema (current, MVP-2)
 
 | Table | Purpose | Key constraints |
 |---|---|---|
@@ -111,9 +111,29 @@ in ~2 seconds without a Postgres container.
 | `students` | Person being tracked | FK school, FK class (nullable), `status` enum |
 | `quran_surahs` | 114 surahs, read-only | `surah_order` unique |
 | `memorization_progress` | Core (student, surah) row | UNIQUE(student_id, surah_id), CHECK score 0–100, CHECK percent 0–100 |
+| `evaluations` | Exam scoring (6 axes + overall + type + date) | CHECK each score 0–100, FK student, FK teacher |
+| `observations` | Typed teacher notes | FK student, FK teacher |
 
-Tables planned for later phases: `evaluations`, `observations`, `audit_logs`,
-`progress_history`.
+Tables planned for later phases: `audit_logs`, `progress_history`.
+
+## 7a. Analytics definitions (MVP-2)
+
+The `AnalyticsService` exposes three views: per-student, per-class, per-school.
+All KPIs are computed at request time (no caching yet — Redis comes in MVP-3+).
+
+| Metric | Formula |
+|---|---|
+| `total_surahs` | `SELECT count(*) FROM quran_surahs` (114 in prod) |
+| `mastery_percent` | `count(status=MASTERED) / total_surahs * 100` |
+| `avg_completion_pct` | `mean(completion_percent)` over recorded surahs |
+| `counts_by_status` | Histogram. Surahs without a row roll into `NOT_STARTED`. |
+| `recent_evaluations_avg_score` | `mean(overall_score)` over the 5 most-recent evaluations |
+| `last_activity_at` | `max(updated_at)` across `memorization_progress` and `evaluations` |
+
+Class- and school-level KPIs aggregate the above across all `ACTIVE` students
+(archived students are excluded). For class/school `counts_by_status`, the
+"expected slot count" is `total_surahs × student_count` so percentages remain
+meaningful when not all students have touched all surahs.
 
 ## 8. RBAC
 
@@ -130,8 +150,8 @@ just require `SchoolUser` (any role + has school).
 | Phase | Slice | Adds |
 |---|---|---|
 | **MVP-1** ✓ | Auth + Students + Surahs + Progress | The Excel replacement |
-| MVP-2 | Evaluations + Notes + Basic analytics | Tajweed/fluency scores, completion %, weak surahs |
-| MVP-3 | Audit logs + Versioned progress history + Admin UI | Production-ready observability |
+| **MVP-2** ✓ | Evaluations + Observations + Analytics | 6-axis exam scoring, typed teacher notes, student/class/school KPIs |
+| MVP-3 | Audit logs + Versioned progress history + Admin UI + class CRUD endpoints | Production-ready observability |
 | Phase-2 | Multi-school admin, notifications, PWA, Excel import | Scale & onboarding |
 | Phase-3 | AI revision suggestions, predictive risk, parent/student portals | Differentiators |
 
@@ -143,6 +163,12 @@ just require `SchoolUser` (any role + has school).
 - No rate limiting yet (planned: `slowapi`).
 - No audit logging yet (MVP-3).
 - No notifications (Celery + email/push planned for Phase-2).
+- No analytics caching yet — every `/analytics/...` request hits Postgres.
+  Redis-backed read-through caching is planned for MVP-3 once query volume
+  warrants it.
+- No public API for managing classes yet (only direct DB / future admin UI).
+  `/analytics/class/{id}` works against existing classes, but classes can only
+  be created at seed time or via SQL until MVP-3.
 - Frontend is a skeleton — the Quran matrix UI, login form, and student
   profile screens are not yet built.
 
