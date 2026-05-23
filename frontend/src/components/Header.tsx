@@ -9,7 +9,8 @@ const NAV: { href: string; label: string; adminOnly?: boolean }[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/students", label: "Students" },
   { href: "/matrix", label: "Matrix" },
-  { href: "/admin/users", label: "Admin", adminOnly: true },
+  { href: "/admin/users", label: "Users", adminOnly: true },
+  { href: "/admin/import", label: "Import", adminOnly: true },
 ];
 
 export function Header() {

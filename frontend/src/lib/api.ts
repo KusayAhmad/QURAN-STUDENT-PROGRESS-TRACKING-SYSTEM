@@ -223,6 +223,13 @@ export interface AdminUser {
   updated_at: string;
 }
 
+export interface ImportResult {
+  students_created: number;
+  students_matched: number;
+  progress_recorded: number;
+  errors: { sheet: string; row: number; message: string }[];
+}
+
 // ---- Matrix ----
 export interface MatrixCell {
   surah_id: number;
@@ -270,6 +277,27 @@ export const admin = {
     },
   ) =>
     request<AdminUser>(`/admin/users/${userId}`, { method: "PUT", json: data }),
+  // The import endpoint is multipart, so it needs its own fetch path that
+  // skips the JSON Content-Type the request() helper would otherwise set.
+  importExcel: async (file: File): Promise<ImportResult> => {
+    const token = useAuthStore.getState().accessToken;
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`${BASE}/api/v1/admin/import`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: fd,
+    });
+    if (res.status === 401) useAuthStore.getState().clear();
+    const text = await res.text();
+    const parsed = text ? JSON.parse(text) : null;
+    if (!res.ok) {
+      const detail = parsed?.detail ?? `HTTP ${res.status}`;
+      const msg = typeof detail === "string" ? detail : JSON.stringify(detail);
+      throw new ApiError(res.status, parsed, msg);
+    }
+    return parsed as ImportResult;
+  },
 };
 
 export { ApiError };
