@@ -189,15 +189,17 @@ async def test_mark_read_idempotent(admin_client, auth_client):
     assert first.json()["read_at"] == second.json()["read_at"]
 
 
-async def test_mark_read_other_user_404(admin_client, second_school_teacher):
-    """A user cannot mark someone else's notification as read."""
-    # Force a notification for the admin first.
-    # second_school_teacher creates a student in a different school -> won't notify our admin.
-    # So we need to manufacture one differently: second_school_teacher tries to read
-    # a non-existent id -> 404.
-    res = await second_school_teacher.post(
-        "/api/v1/notifications/00000000-0000-0000-0000-000000000000/read"
+async def test_mark_read_other_user_404(admin_client, auth_client, second_school_teacher):
+    """A user cannot mark another user's notification as read."""
+    # Create a real notification for admin_client.
+    await auth_client.post(
+        "/api/v1/students", json={"full_name": "Cross User", "gender": "MALE"}
     )
+    listing = await admin_client.get("/api/v1/notifications")
+    nid = listing.json()["items"][0]["id"]
+
+    # second_school_teacher tries to mark admin's notification as read -> 404.
+    res = await second_school_teacher.post(f"/api/v1/notifications/{nid}/read")
     assert res.status_code == 404
 
 

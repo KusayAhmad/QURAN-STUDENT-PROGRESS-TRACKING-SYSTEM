@@ -4,15 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 
-import { notifications, type NotificationType } from "@/lib/api";
-
-const TYPE_LABEL: Record<NotificationType, string> = {
-  PROGRESS_REGRESSED: "Regression",
-  LOW_EVALUATION: "Low evaluation",
-  STUDENT_ADDED: "New student",
-  OVERDUE_REVIEW: "Overdue review",
-  MANUAL: "Notice",
-};
+import { notifications } from "@/lib/api";
+import { TYPE_LABEL } from "@/lib/notifications";
 
 export default function NotificationsPage() {
   const qc = useQueryClient();

@@ -4,15 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { notifications, type Notification, type NotificationType } from "@/lib/api";
-
-const TYPE_LABEL: Record<NotificationType, string> = {
-  PROGRESS_REGRESSED: "Regression",
-  LOW_EVALUATION: "Low score",
-  STUDENT_ADDED: "New student",
-  OVERDUE_REVIEW: "Overdue",
-  MANUAL: "Notice",
-};
+import { notifications, type Notification } from "@/lib/api";
+import { TYPE_LABEL } from "@/lib/notifications";
 
 /** Header bell + popover. Polls /unread-count every 30s. */
 export function NotificationBell() {

@@ -46,14 +46,29 @@ async def _recipients_for_student(
     recipient_ids: set[UUID] = set()
 
     if student.class_id is not None:
-        # Get the class's teacher.
+        # Get the class's teacher, constrained to the student's school.
         from app.models.class_ import Class
 
         klass = (
-            await db.execute(select(Class).where(Class.id == student.class_id))
+            await db.execute(
+                select(Class).where(
+                    Class.id == student.class_id,
+                    Class.school_id == student.school_id,
+                )
+            )
         ).scalar_one_or_none()
         if klass is not None and klass.teacher_id is not None:
-            recipient_ids.add(klass.teacher_id)
+            # Only add teacher if they are an active user.
+            teacher_active = (
+                await db.execute(
+                    select(User.id).where(
+                        User.id == klass.teacher_id,
+                        User.is_active.is_(True),
+                    )
+                )
+            ).scalar_one_or_none()
+            if teacher_active is not None:
+                recipient_ids.add(klass.teacher_id)
 
     # All admins in the school.
     admins = (
