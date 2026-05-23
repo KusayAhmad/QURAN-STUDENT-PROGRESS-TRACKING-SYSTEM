@@ -1,0 +1,47 @@
+[project]
+name = "quran-progress-backend"
+version = "0.1.0"
+description = "Quran Student Progress Tracking System - Backend (FastAPI)"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.32.1",
+    "sqlalchemy[asyncio]==2.0.36",
+    "asyncpg==0.30.0",
+    "alembic==1.14.0",
+    "pydantic==2.10.3",
+    "pydantic-settings==2.7.0",
+    "python-jose[cryptography]==3.3.0",
+    "argon2-cffi==23.1.0",
+    "python-multipart==0.0.20",
+    "email-validator==2.2.0",
+    "httpx==0.28.1",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
+    "pytest-asyncio==0.25.0",
+    "aiosqlite==0.20.0",
+    "ruff==0.8.4",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
