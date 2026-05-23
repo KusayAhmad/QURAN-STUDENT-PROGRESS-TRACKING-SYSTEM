@@ -1,4 +1,6 @@
 """Analytics business logic — composes aggregate queries into KPI views."""
+from collections import defaultdict
+from datetime import date, timedelta
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -6,14 +8,18 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.class_ import Class
+from app.models.evaluation import Evaluation
 from app.models.memorization_progress import MemorizationStatus
 from app.models.student import Student, StudentStatus
 from app.repositories import analytics_repo, evaluation_repo, student_repo
 from app.schemas.analytics import (
     ClassAnalytics,
+    EvaluationTrend,
+    EvaluationTrendPoint,
     SchoolAnalytics,
     StatusCounts,
     StudentAnalytics,
+    TimeBucket,
 )
 
 # How many of the most recent evaluations to include in the rolling average.
@@ -147,3 +153,57 @@ async def school_analytics(db: AsyncSession, *, school_id: UUID) -> SchoolAnalyt
         avg_completion_pct=round(avg_completion, 2),
         counts_by_status=_build_status_counts(histogram, total_surahs * student_count),
     )
+
+
+def _bucket_start(d: date, bucket: TimeBucket) -> date:
+    if bucket == TimeBucket.DAY:
+        return d
+    if bucket == TimeBucket.WEEK:
+        # ISO week start (Monday)
+        return d - timedelta(days=d.weekday())
+    # MONTH
+    return d.replace(day=1)
+
+
+async def evaluation_trend(
+    db: AsyncSession,
+    *,
+    school_id: UUID,
+    student_id: UUID,
+    bucket: TimeBucket,
+) -> EvaluationTrend:
+    """Time-bucketed evaluation overall_score series for a student.
+
+    Bucketing is done in Python for portability (SQLite doesn't have
+    `date_trunc`). Volumes here are small — at most a few hundred evals per
+    student. If we ever need to scale, switch to dialect-specific SQL.
+    """
+    student = await student_repo.get_for_school(db, school_id=school_id, student_id=student_id)
+    if student is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Student not found")
+
+    rows = (
+        await db.execute(
+            select(Evaluation.exam_date, Evaluation.overall_score)
+            .where(
+                Evaluation.student_id == student_id,
+                Evaluation.overall_score.is_not(None),
+            )
+            .order_by(Evaluation.exam_date)
+        )
+    ).all()
+
+    buckets: dict[date, list[int]] = defaultdict(list)
+    for exam_date, score in rows:
+        buckets[_bucket_start(exam_date, bucket)].append(int(score))
+
+    points = [
+        EvaluationTrendPoint(
+            period_start=period_start,
+            avg_overall_score=round(sum(scores) / len(scores), 2),
+            eval_count=len(scores),
+        )
+        for period_start, scores in sorted(buckets.items())
+    ]
+
+    return EvaluationTrend(student_id=student_id, bucket=bucket, points=points)

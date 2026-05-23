@@ -99,10 +99,11 @@ npm run dev
 | POST | `/api/v1/students/{id}/progress` | Upsert (student + surah) progress |
 | PUT | `/api/v1/progress/{id}` | Partial update by progress id |
 | GET, POST | `/api/v1/students/{id}/evaluations` | List or create evaluation (6-axis scoring) |
-| GET, DELETE | `/api/v1/evaluations/{id}` | Get / delete evaluation |
+| GET, PUT, DELETE | `/api/v1/evaluations/{id}` | Get / update / delete evaluation |
 | GET, POST | `/api/v1/students/{id}/observations` | List or create teacher note |
 | DELETE | `/api/v1/observations/{id}` | Delete observation |
 | GET | `/api/v1/analytics/student/{id}` | Per-student KPIs (mastery %, counts, recent eval avg) |
+| GET | `/api/v1/analytics/student/{id}/evaluation-trend` | Time-bucketed eval scores (`?bucket=day\|week\|month`) |
 | GET | `/api/v1/analytics/class/{id}` | Class-level aggregates |
 | GET | `/api/v1/analytics/school` | School-level aggregates (current user's school) |
 
@@ -123,7 +124,7 @@ cd backend
 pytest -q
 ```
 
-33 tests cover auth, students CRUD, progress upsert, evaluations, observations, and analytics paths.
+46 tests cover auth, students CRUD, progress upsert, evaluations (incl. updates), observations, analytics (incl. evaluation-trend), and cross-tenant isolation.
 
 ## Roadmap
 

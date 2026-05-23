@@ -150,7 +150,7 @@ just require `SchoolUser` (any role + has school).
 | Phase | Slice | Adds |
 |---|---|---|
 | **MVP-1** ✓ | Auth + Students + Surahs + Progress | The Excel replacement |
-| **MVP-2** ✓ | Evaluations + Observations + Analytics | 6-axis exam scoring, typed teacher notes, student/class/school KPIs |
+| **MVP-2** ✓ | Evaluations + Observations + Analytics | 6-axis exam scoring, typed teacher notes, student/class/school KPIs, evaluation-trend time series, evaluation update endpoint |
 | MVP-3 | Audit logs + Versioned progress history + Admin UI + class CRUD endpoints | Production-ready observability |
 | Phase-2 | Multi-school admin, notifications, PWA, Excel import | Scale & onboarding |
 | Phase-3 | AI revision suggestions, predictive risk, parent/student portals | Differentiators |

@@ -1,10 +1,16 @@
 """Analytics routes — read-only KPIs."""
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.api.deps import DbSession, SchoolUser
-from app.schemas.analytics import ClassAnalytics, SchoolAnalytics, StudentAnalytics
+from app.schemas.analytics import (
+    ClassAnalytics,
+    EvaluationTrend,
+    SchoolAnalytics,
+    StudentAnalytics,
+    TimeBucket,
+)
 from app.services import analytics_service
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -16,6 +22,20 @@ async def student_analytics(
 ) -> StudentAnalytics:
     return await analytics_service.student_analytics(
         db, school_id=user.school_id, student_id=student_id
+    )
+
+
+@router.get(
+    "/student/{student_id}/evaluation-trend", response_model=EvaluationTrend
+)
+async def student_evaluation_trend(
+    student_id: UUID,
+    db: DbSession,
+    user: SchoolUser,
+    bucket: TimeBucket = Query(default=TimeBucket.MONTH),
+) -> EvaluationTrend:
+    return await analytics_service.evaluation_trend(
+        db, school_id=user.school_id, student_id=student_id, bucket=bucket
     )
 
 

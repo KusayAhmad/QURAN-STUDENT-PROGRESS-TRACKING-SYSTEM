@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.evaluation import Evaluation
 from app.repositories import evaluation_repo, student_repo
-from app.schemas.evaluation import EvaluationCreate
+from app.schemas.evaluation import EvaluationCreate, EvaluationUpdate
 
 
 async def list_evaluations(
@@ -65,6 +65,23 @@ async def get_evaluation(
     )
     if student is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Evaluation not found")
+    return evaluation
+
+
+async def update_evaluation(
+    db: AsyncSession,
+    *,
+    school_id: UUID,
+    evaluation_id: UUID,
+    data: EvaluationUpdate,
+) -> Evaluation:
+    """Partial update. Tenant-checked via get_evaluation."""
+    evaluation = await get_evaluation(db, school_id=school_id, evaluation_id=evaluation_id)
+    payload = data.model_dump(exclude_unset=True)
+    for field, value in payload.items():
+        setattr(evaluation, field, value)
+    await db.flush()
+    await db.refresh(evaluation)
     return evaluation
 
 
