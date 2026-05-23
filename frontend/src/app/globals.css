@@ -631,3 +631,17 @@ button.qp-status:hover {
 .qp-grid-table thead th {
   unicode-bidi: isolate;
 }
+
+
+
+/* ---- Sync banner (offline queue draining) ---- */
+.qp-sync-banner {
+  background: #f59e0b;
+  color: #111827;
+  padding: 6px 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  position: sticky;
+  top: 0;
+  z-index: 59; /* below the offline banner (60), above everything else */
+}

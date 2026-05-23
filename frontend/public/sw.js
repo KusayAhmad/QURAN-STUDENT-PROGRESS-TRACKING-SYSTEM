@@ -109,3 +109,22 @@ async function staleWhileRevalidate(request, cacheName) {
     .catch(() => cached);
   return cached || fetchPromise;
 }
+
+
+
+// ---- Background Sync (Phase B) ----
+// When the browser regains connectivity and a sync event fires, we notify
+// any open client to drain the IndexedDB queue. The actual replay logic
+// lives in the React SyncManager component (it has access to the auth store
+// and React Query); the SW just pokes it.
+self.addEventListener("sync", (event) => {
+  if (event.tag === "drain-offline-queue") {
+    event.waitUntil(
+      self.clients.matchAll({ type: "window" }).then((clients) => {
+        for (const client of clients) {
+          client.postMessage({ type: "DRAIN_OFFLINE_QUEUE" });
+        }
+      }),
+    );
+  }
+});
