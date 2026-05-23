@@ -42,7 +42,7 @@ export default function ImportPage() {
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  if (me && me.role !== "ADMIN") return null;
+  if (!me || me.role !== "ADMIN") return null;
 
   return (
     <div>

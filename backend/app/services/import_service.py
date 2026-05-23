@@ -33,7 +33,7 @@ from app.models.memorization_progress import MemorizationProgress, MemorizationS
 from app.models.progress_history import ProgressHistory
 from app.models.student import Student, StudentGender
 from app.models.surah import QuranSurah
-from app.repositories import progress_repo, surah_repo
+from app.repositories import surah_repo
 from app.schemas.import_ import ImportError as ImportErrorSchema
 from app.schemas.import_ import ImportResult
 from app.services import audit_service
@@ -278,6 +278,18 @@ async def _import_progress(
         "teacher_id",
     )
 
+    # Prefetch all existing progress rows for students in this school to avoid
+    # N+1 queries when processing each row.
+    student_ids = [s.id for s in name_to_student.values()]
+    existing_progress: dict[tuple[UUID, int], MemorizationProgress] = {}
+    if student_ids:
+        stmt = select(MemorizationProgress).where(
+            MemorizationProgress.student_id.in_(student_ids)
+        )
+        rows_existing = (await db.execute(stmt)).scalars().all()
+        for p in rows_existing:
+            existing_progress[(p.student_id, p.surah_id)] = p
+
     for row_idx, row in enumerate(rows, start=2):
         name_val = row[cols["student_full_name"]] if cols["student_full_name"] < len(row) else None
         full_name = str(name_val).strip() if name_val else ""
@@ -340,10 +352,13 @@ async def _import_progress(
             completion = 0
         completion = max(0, min(100, completion))
 
-        existing = await progress_repo.get_by_student_and_surah(
-            db, student.id, surah.id
-        )
+        existing = existing_progress.get((student.id, surah.id))
         action = AuditAction.UPDATE if existing else AuditAction.CREATE
+        old_value = (
+            audit_service.snapshot(existing, progress_audit_fields)
+            if existing
+            else None
+        )
         if existing is None:
             existing = MemorizationProgress(
                 student_id=student.id,
@@ -353,6 +368,7 @@ async def _import_progress(
                 completion_percent=completion,
             )
             db.add(existing)
+            existing_progress[(student.id, surah.id)] = existing
         else:
             existing.status = status
             existing.completion_percent = completion
@@ -382,6 +398,7 @@ async def _import_progress(
             action=action,
             entity_type=AuditEntityType.PROGRESS,
             entity_id=existing.id,
+            old_value=old_value,
             new_value=audit_service.snapshot(existing, progress_audit_fields),
         )
 

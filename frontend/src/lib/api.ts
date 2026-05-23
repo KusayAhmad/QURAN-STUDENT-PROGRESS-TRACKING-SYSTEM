@@ -290,7 +290,13 @@ export const admin = {
     });
     if (res.status === 401) useAuthStore.getState().clear();
     const text = await res.text();
-    const parsed = text ? JSON.parse(text) : null;
+    let parsed: unknown = null;
+    try {
+      parsed = text ? JSON.parse(text) : null;
+    } catch {
+      if (!res.ok) throw new ApiError(res.status, null, `HTTP ${res.status}`);
+      throw new ApiError(res.status, null, "Invalid JSON response");
+    }
     if (!res.ok) {
       const detail = parsed?.detail ?? `HTTP ${res.status}`;
       const msg = typeof detail === "string" ? detail : JSON.stringify(detail);
