@@ -220,6 +220,27 @@ export const observations = {
     request<void>(`/observations/${observationId}`, { method: "DELETE" }),
 };
 
+// ---- Classes ----
+export interface ClassItem {
+  id: string;
+  school_id: string;
+  teacher_id: string | null;
+  name: string;
+  academic_year: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const classes = {
+  list: () => request<ClassItem[]>("/classes"),
+  get: (id: string) => request<ClassItem>(`/classes/${id}`),
+  create: (data: { name: string; academic_year: string; teacher_id?: string | null }) =>
+    request<ClassItem>("/classes", { method: "POST", json: data }),
+  update: (id: string, data: { name?: string; academic_year?: string; teacher_id?: string | null }) =>
+    request<ClassItem>(`/classes/${id}`, { method: "PUT", json: data }),
+  remove: (id: string) => request<void>(`/classes/${id}`, { method: "DELETE" }),
+};
+
 // ---- Analytics ----
 export const analytics = {
   student: (studentId: string) =>
