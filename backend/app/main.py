@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.rate_limit import setup_rate_limiting
 
 # Make sure all models are imported so Base.metadata is populated.
 import app.models  # noqa: F401
@@ -35,6 +36,9 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)
+
+# Rate limiting
+setup_rate_limiting(app)
 
 
 @app.get("/health", tags=["meta"])
