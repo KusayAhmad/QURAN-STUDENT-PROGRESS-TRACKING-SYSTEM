@@ -9,6 +9,7 @@ export const ar: Record<keyof typeof en, string> = {
   "nav.dashboard": "لوحة التحكم",
   "nav.students": "الطلاب",
   "nav.matrix": "المصفوفة",
+  "nav.classes": "الفصول",
   "nav.users": "المستخدمون",
   "nav.import": "استيراد",
   "nav.notifications": "الإشعارات",
