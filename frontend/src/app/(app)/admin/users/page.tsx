@@ -226,7 +226,7 @@ function EditUserModal({
 
   const mutation = useMutation({
     mutationFn: () => {
-      const data: Record<string, unknown> = {};
+      const data: Partial<{ name: string; role: UserRole; is_active: boolean; password: string }> = {};
       if (name !== user.name) data.name = name;
       if (role !== user.role) data.role = role;
       if (isActive !== user.is_active) data.is_active = isActive;

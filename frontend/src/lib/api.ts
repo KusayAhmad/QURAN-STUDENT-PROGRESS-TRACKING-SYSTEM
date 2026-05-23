@@ -100,7 +100,13 @@ async function request<T>(
       });
       if (retry.status === 204) return undefined as T;
       const retryText = await retry.text();
-      const retryParsed = retryText ? JSON.parse(retryText) : null;
+      let retryParsed: unknown = null;
+      try {
+        retryParsed = retryText ? JSON.parse(retryText) : null;
+      } catch {
+        if (!retry.ok) throw new ApiError(retry.status, null, `HTTP ${retry.status}`);
+        throw new ApiError(retry.status, null, "Invalid JSON response");
+      }
       if (!retry.ok) {
         if (retry.status === 401) {
           useAuthStore.getState().clear();
@@ -122,7 +128,13 @@ async function request<T>(
   }
 
   const text = await res.text();
-  const parsed = text ? JSON.parse(text) : null;
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    if (!res.ok) throw new ApiError(res.status, null, `HTTP ${res.status}`);
+    throw new ApiError(res.status, null, "Invalid JSON response");
+  }
 
   if (!res.ok) {
     const detail =
@@ -349,7 +361,10 @@ export const admin = {
       throw new ApiError(res.status, null, "Invalid JSON response");
     }
     if (!res.ok) {
-      const detail = parsed?.detail ?? `HTTP ${res.status}`;
+      const detail =
+        (parsed && typeof parsed === "object" && "detail" in parsed
+          ? (parsed as { detail: unknown }).detail
+          : null) ?? `HTTP ${res.status}`;
       const msg = typeof detail === "string" ? detail : JSON.stringify(detail);
       throw new ApiError(res.status, parsed, msg);
     }

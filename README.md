@@ -107,8 +107,8 @@ After login the app stores tokens in `localStorage` so refresh keeps you in.
   as a simple list of 114 rows (one per surah) with a click-to-edit
   status pill, which is faster to ship than a real DataGrid and
   performs fine for a single-student view. A multi-student matrix
-  (à la the original Excel) would be a future addition on top of MUI
-  DataGrid.
+  (`/matrix`) is also implemented, rendering the full 114-surah ×
+  multi-student grid.
 
 ## API summary (v1)
 
@@ -140,7 +140,8 @@ After login the app stores tokens in `localStorage` so refresh keeps you in.
 | GET, PUT, DELETE | `/api/v1/classes/{id}` | Read for any school user; write admin only |
 | GET | `/api/v1/admin/audit-logs` | Audit trail, admin only, filter by entity_type/entity_id |
 | GET | `/api/v1/admin/users` | School user list, admin only |
-| POST, PUT | `/api/v1/admin/users` | Create / update users (admin only) |
+| POST | `/api/v1/admin/users` | Create user (admin only) |
+| PUT | `/api/v1/admin/users/{id}` | Update user (admin only) |
 | POST | `/api/v1/admin/import` | Bulk Excel/.xlsm import (admin only) |
 | GET | `/api/v1/students/matrix` | Bulk Quran×Student grid in one query |
 | GET | `/api/v1/notifications` | Per-user inbox (filterable by `?unread_only=true`) |
