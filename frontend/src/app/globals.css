@@ -547,3 +547,20 @@ button.qp-status:hover {
   border-top: 1px solid var(--color-border);
   text-align: center;
 }
+
+
+
+/* ---- Offline banner (PWA) ---- */
+.qp-offline-banner {
+  background: var(--color-danger);
+  color: white;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+.qp-offline-banner strong {
+  margin-right: 6px;
+}
