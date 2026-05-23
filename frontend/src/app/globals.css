@@ -562,7 +562,7 @@ button.qp-status:hover {
   z-index: 60;
 }
 .qp-offline-banner strong {
-  margin-right: 6px;
+  margin-inline-end: 6px;
 }
 
 

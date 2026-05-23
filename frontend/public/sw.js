@@ -47,21 +47,21 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Only handle same-origin GETs. CORS GETs to the API host are also handled
-  // (api.example.com or :8000); we cache them as opaque-ok responses.
+  // Only handle same-origin GETs.
   if (request.method !== "GET") return;
+  if (url.origin !== self.location.origin) return;
 
   const isApi = url.pathname.startsWith("/api/v1");
 
-  // Surahs catalog: static, cache-first.
+  // Surahs catalog: static, cache-first (public, no auth needed).
   if (isApi && /\/api\/v1\/surahs(\/|$)/.test(url.pathname)) {
     event.respondWith(cacheFirst(request, RUNTIME_CACHE));
     return;
   }
 
-  // Other API GETs: network-first, fall back to cache.
+  // Other API GETs carry Authorization and contain user-specific data.
+  // Use network-only; do not cache to avoid serving stale/wrong-user data.
   if (isApi) {
-    event.respondWith(networkFirst(request, RUNTIME_CACHE));
     return;
   }
 
