@@ -21,6 +21,7 @@ import type {
   StudentGender,
   Surah,
   TokenPair,
+  UserRole,
 } from "@/lib/types";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -208,6 +209,38 @@ export const analytics = {
   student: (studentId: string) =>
     request<StudentAnalytics>(`/analytics/student/${studentId}`),
   school: () => request<SchoolAnalytics>("/analytics/school"),
+};
+
+// ---- Admin ----
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  is_active: boolean;
+  school_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const admin = {
+  listUsers: () => request<AdminUser[]>("/admin/users"),
+  createUser: (data: {
+    name: string;
+    email: string;
+    password: string;
+    role?: UserRole;
+  }) => request<AdminUser>("/admin/users", { method: "POST", json: data }),
+  updateUser: (
+    userId: string,
+    data: {
+      name?: string;
+      role?: UserRole;
+      is_active?: boolean;
+      password?: string;
+    },
+  ) =>
+    request<AdminUser>(`/admin/users/${userId}`, { method: "PUT", json: data }),
 };
 
 export { ApiError };

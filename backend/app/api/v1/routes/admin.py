@@ -1,13 +1,14 @@
-"""Admin-only routes: audit log read, user list."""
-from fastapi import APIRouter, Depends, Query
+"""Admin-only routes: audit log read, user list + CRUD."""
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import DbSession, require_roles
 from app.models.audit_log import AuditEntityType
 from app.models.user import User, UserRole
-from app.repositories import user_repo
-from app.schemas.admin import AdminUserRead
+from app.schemas.admin import AdminUserCreate, AdminUserRead, AdminUserUpdate
 from app.schemas.audit import AuditLogRead
-from app.services import audit_service
+from app.services import audit_service, user_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -43,5 +44,38 @@ async def list_audit_logs(
 async def list_users(
     db: DbSession, user: User = Depends(_admin_only)
 ) -> list[AdminUserRead]:
-    users = await user_repo.list_for_school(db, user.school_id)
+    users = await user_service.list_users(db, school_id=user.school_id)
     return [AdminUserRead.model_validate(u) for u in users]
+
+
+@router.post(
+    "/users", response_model=AdminUserRead, status_code=status.HTTP_201_CREATED
+)
+async def create_user(
+    payload: AdminUserCreate,
+    db: DbSession,
+    user: User = Depends(_admin_only),
+) -> AdminUserRead:
+    created = await user_service.create_user(
+        db, actor_id=user.id, school_id=user.school_id, data=payload
+    )
+    await db.commit()
+    return AdminUserRead.model_validate(created)
+
+
+@router.put("/users/{user_id}", response_model=AdminUserRead)
+async def update_user(
+    user_id: UUID,
+    payload: AdminUserUpdate,
+    db: DbSession,
+    user: User = Depends(_admin_only),
+) -> AdminUserRead:
+    updated = await user_service.update_user(
+        db,
+        actor_id=user.id,
+        school_id=user.school_id,
+        user_id=user_id,
+        data=payload,
+    )
+    await db.commit()
+    return AdminUserRead.model_validate(updated)
