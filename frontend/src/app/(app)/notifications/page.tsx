@@ -4,11 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 
-import { notifications } from "@/lib/api";
-import { TYPE_LABEL } from "@/lib/notifications";
+import { notifications, type NotificationType } from "@/lib/api";
+import { useT } from "@/lib/useT";
 
 export default function NotificationsPage() {
   const qc = useQueryClient();
+  const t = useT();
   const [unreadOnly, setUnreadOnly] = useState(false);
 
   const list = useQuery({
@@ -26,6 +27,9 @@ export default function NotificationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
+  const longLabel = (type: NotificationType) =>
+    t(`notifType.${type}.long` as const);
+
   return (
     <div>
       <div
@@ -36,16 +40,16 @@ export default function NotificationsPage() {
           marginBottom: 16,
         }}
       >
-        <h1 style={{ margin: 0 }}>Notifications</h1>
+        <h1 style={{ margin: 0 }}>{t("notifications.title")}</h1>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <label style={{ fontSize: "0.85rem" }}>
             <input
               type="checkbox"
               checked={unreadOnly}
               onChange={(e) => setUnreadOnly(e.target.checked)}
-              style={{ width: "auto", marginRight: 6 }}
+              style={{ width: "auto", marginInlineEnd: 6 }}
             />
-            Unread only
+            {t("notifications.unreadOnly")}
           </label>
           <button
             type="button"
@@ -53,17 +57,17 @@ export default function NotificationsPage() {
             onClick={() => markAll.mutate()}
             disabled={markAll.isPending}
           >
-            Mark all read
+            {t("notifications.markAllRead")}
           </button>
         </div>
       </div>
 
       <div className="qp-card" style={{ padding: 0 }}>
         {list.isLoading ? (
-          <p style={{ padding: 16 }}>Loading...</p>
+          <p style={{ padding: 16 }}>{t("common.loading")}</p>
         ) : list.data && list.data.items.length === 0 ? (
           <p style={{ padding: 16, color: "var(--color-muted)" }}>
-            {unreadOnly ? "No unread notifications." : "No notifications yet."}
+            {unreadOnly ? t("notifications.emptyUnread") : t("notifications.empty")}
           </p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
@@ -97,7 +101,7 @@ export default function NotificationsPage() {
                           marginBottom: 4,
                         }}
                       >
-                        <span className="qp-role">{TYPE_LABEL[n.type]}</span>
+                        <span className="qp-role">{longLabel(n.type)}</span>
                         <span style={{ color: "var(--color-muted)", fontSize: "0.75rem" }}>
                           {new Date(n.created_at).toLocaleString()}
                         </span>
@@ -126,7 +130,7 @@ export default function NotificationsPage() {
                             if (!n.read_at) markRead.mutate(n.id);
                           }}
                         >
-                          Open student →
+                          {t("notifications.openStudent")}
                         </Link>
                       ) : null}
                       {!n.read_at ? (
@@ -136,7 +140,7 @@ export default function NotificationsPage() {
                           style={{ padding: "2px 8px", fontSize: "0.75rem" }}
                           onClick={() => markRead.mutate(n.id)}
                         >
-                          Mark read
+                          {t("notifications.markRead")}
                         </button>
                       ) : null}
                     </div>

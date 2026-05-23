@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
+import { I18nProvider } from "@/components/I18nProvider";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { PWAClient } from "@/components/PWAClient";
 import { QueryProvider } from "@/components/QueryProvider";
@@ -30,14 +31,18 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // <html lang/dir> default to en/ltr; I18nProvider mutates them after
+  // hydration based on the persisted locale store.
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr">
       <body>
-        <QueryProvider>
-          <OfflineBanner />
-          <PWAClient />
-          {children}
-        </QueryProvider>
+        <I18nProvider>
+          <QueryProvider>
+            <OfflineBanner />
+            <PWAClient />
+            {children}
+          </QueryProvider>
+        </I18nProvider>
       </body>
     </html>
   );

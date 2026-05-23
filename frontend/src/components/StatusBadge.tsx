@@ -1,13 +1,7 @@
-import type { MemorizationStatus } from "@/lib/types";
+"use client";
 
-const LABELS: Record<MemorizationStatus, string> = {
-  NOT_STARTED: "Not started",
-  IN_PROGRESS: "In progress",
-  REVIEW_REQUIRED: "Review required",
-  WEAK: "Weak",
-  STRONG: "Strong",
-  MASTERED: "Mastered",
-};
+import { useT } from "@/lib/useT";
+import type { MemorizationStatus } from "@/lib/types";
 
 export function StatusBadge({
   status,
@@ -16,15 +10,15 @@ export function StatusBadge({
   status: MemorizationStatus;
   onClick?: () => void;
 }) {
+  const t = useT();
   const cls = `qp-status qp-status-${status.toLowerCase()}`;
+  const label = t(`status.${status}` as const);
   if (onClick) {
     return (
       <button type="button" className={cls} onClick={onClick}>
-        {LABELS[status]}
+        {label}
       </button>
     );
   }
-  return <span className={cls}>{LABELS[status]}</span>;
+  return <span className={cls}>{label}</span>;
 }
-
-export const STATUS_LABEL = LABELS;
