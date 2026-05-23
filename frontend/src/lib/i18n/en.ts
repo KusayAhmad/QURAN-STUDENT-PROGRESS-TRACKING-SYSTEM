@@ -89,6 +89,7 @@ export const en = {
   "notifications.allCaughtUp": "You're all caught up.",
   "notifications.viewAll": "View all →",
   "notifications.openStudent": "Open student →",
+  "notifications.bellLabel": "Notifications ({count} unread)",
 
   // Notification type labels (short, for the bell)
   "notifType.PROGRESS_REGRESSED": "Regression",

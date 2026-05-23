@@ -57,7 +57,7 @@ export function NotificationBell() {
       <button
         type="button"
         className="qp-bell"
-        aria-label={`${t("notifications.title")} (${unread})`}
+        aria-label={t("notifications.bellLabel").replace("{count}", String(unread))}
         onClick={() => setOpen((o) => !o)}
       >
         <span aria-hidden>🔔</span>

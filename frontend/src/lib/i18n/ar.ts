@@ -1,7 +1,7 @@
 // Arabic translations. Keys must mirror en.ts exactly (TranslationKey is
 // the union of en's keys; missing entries produce a compile error here).
 
-import type { en } from "./en";
+import { en } from "./en";
 
 export const ar: Record<keyof typeof en, string> = {
   // App / nav
@@ -91,6 +91,7 @@ export const ar: Record<keyof typeof en, string> = {
   "notifications.allCaughtUp": "لا توجد إشعارات جديدة.",
   "notifications.viewAll": "عرض الكل ←",
   "notifications.openStudent": "← فتح الطالب",
+  "notifications.bellLabel": "الإشعارات ({count} غير مقروءة)",
 
   // Notification type labels (short)
   "notifType.PROGRESS_REGRESSED": "تراجع",
