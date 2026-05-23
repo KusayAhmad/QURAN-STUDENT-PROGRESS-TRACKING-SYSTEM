@@ -35,6 +35,26 @@ class ApiError extends Error {
   }
 }
 
+let refreshPromise: Promise<TokenPair | null> | null = null;
+
+async function attemptTokenRefresh(): Promise<TokenPair | null> {
+  const { refreshToken } = useAuthStore.getState();
+  if (!refreshToken) return null;
+  try {
+    const res = await fetch(`${BASE}/api/v1/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return null;
+    const tokens: TokenPair = await res.json();
+    useAuthStore.getState().setTokens(tokens.access_token, tokens.refresh_token);
+    return tokens;
+  } catch {
+    return null;
+  }
+}
+
 async function request<T>(
   path: string,
   init: RequestInit & { json?: unknown } = {},
@@ -62,6 +82,37 @@ async function request<T>(
   });
 
   if (res.status === 401) {
+    // Attempt a single-flight token refresh before clearing auth
+    if (!refreshPromise) {
+      refreshPromise = attemptTokenRefresh().finally(() => {
+        refreshPromise = null;
+      });
+    }
+    const refreshed = await refreshPromise;
+    if (refreshed) {
+      // Retry the original request with the new token
+      headers.Authorization = `Bearer ${refreshed.access_token}`;
+      const retry = await fetch(`${BASE}/api/v1${path}`, {
+        ...init,
+        headers,
+        body,
+      });
+      if (retry.status === 204) return undefined as T;
+      const retryText = await retry.text();
+      const retryParsed = retryText ? JSON.parse(retryText) : null;
+      if (!retry.ok) {
+        if (retry.status === 401) {
+          useAuthStore.getState().clear();
+        }
+        const detail =
+          (retryParsed && typeof retryParsed === "object" && "detail" in retryParsed
+            ? (retryParsed as { detail: unknown }).detail
+            : null) ?? `HTTP ${retry.status}`;
+        const msg = typeof detail === "string" ? detail : JSON.stringify(detail);
+        throw new ApiError(retry.status, retryParsed, msg);
+      }
+      return retryParsed as T;
+    }
     useAuthStore.getState().clear();
   }
 
@@ -119,7 +170,7 @@ export const students = {
   update: (id: string, data: Partial<Student>) =>
     request<Student>(`/students/${id}`, { method: "PUT", json: data }),
   archive: (id: string) =>
-    request<Student>(`/students/${id}`, { method: "DELETE" }),
+    request<void>(`/students/${id}`, { method: "DELETE" }),
 };
 
 // ---- Surahs ----

@@ -47,11 +47,13 @@ export function ProgressMatrix({ studentId }: { studentId: string }) {
       surah_id: number;
       status: MemorizationStatus;
       completion_percent: number;
+      notes?: string | null;
     }) =>
       progress.upsert(studentId, {
         surah_id: input.surah_id,
         status: input.status,
         completion_percent: input.completion_percent,
+        notes: input.notes,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["progress", studentId] });
@@ -125,6 +127,7 @@ export function ProgressMatrix({ studentId }: { studentId: string }) {
               surah_id: editing.surah.id,
               status,
               completion_percent: completion,
+              notes: editing.current?.notes,
             })
           }
           saving={upsert.isPending}
