@@ -190,7 +190,38 @@ just require `SchoolUser` (any role + has school).
   and admin screens are not yet built. The backend is feature-complete for
   MVP-3 and is the priority of the next slice.
 
-## 11. Source of truth
+
+
+## 11. Frontend (current state)
+
+Built on Next.js 16 + React 19 with the App Router, in pure client-component
+mode for simplicity. The frontend talks to the backend via a hand-written
+typed fetch wrapper (`src/lib/api.ts`); we deliberately did not generate
+types from the OpenAPI spec to avoid a build-time dependency.
+
+Pages:
+- `/login` — email + password against `/auth/login`, tokens persisted in
+  `localStorage` via Zustand.
+- `/dashboard` — school KPI tiles + status histogram.
+- `/students` — list, search, archive filter, modal-based create.
+- `/students/[id]` — three tabs:
+  1. *Memorization matrix*: 114 rows, click any status pill to edit.
+     Click "History" to open the per-surah timeline modal.
+  2. *Evaluations*: 6-axis form + list + delete.
+  3. *Observations*: typed teacher notes.
+
+Decisions worth flagging:
+- No Tailwind / no MUI. Hand-rolled CSS in `globals.css`. Fast to ship and
+  trivial to swap later if we add MUI DataGrid for a multi-student matrix.
+- Auth guard is client-side only (`AuthGuard` component reads the Zustand
+  store and redirects). Server-side auth would require shipping the token
+  via cookies; deferred.
+- The "matrix" is rendered as a vertical list of 114 rows for one student,
+  not the original Excel two-axis grid. Single-student is the more common
+  view in a school day; the multi-student grid (rows = students, cols = 114
+  surahs) needs a virtualized DataGrid and is a Phase-2 add.
+
+## 12. Source of truth
 
 If this document and the code disagree, the code wins. Keep this document in
 sync via PR.
