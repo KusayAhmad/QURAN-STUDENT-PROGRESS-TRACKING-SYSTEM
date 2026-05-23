@@ -5,18 +5,11 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { notifications, type Notification, type NotificationType } from "@/lib/api";
+import { useT } from "@/lib/useT";
 
-const TYPE_LABEL: Record<NotificationType, string> = {
-  PROGRESS_REGRESSED: "Regression",
-  LOW_EVALUATION: "Low score",
-  STUDENT_ADDED: "New student",
-  OVERDUE_REVIEW: "Overdue",
-  MANUAL: "Notice",
-};
-
-/** Header bell + popover. Polls /unread-count every 30s. */
 export function NotificationBell() {
   const qc = useQueryClient();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -47,7 +40,6 @@ export function NotificationBell() {
     },
   });
 
-  // Close on outside click.
   useEffect(() => {
     if (!open) return;
     function onDoc(e: MouseEvent) {
@@ -58,13 +50,14 @@ export function NotificationBell() {
   }, [open]);
 
   const unread = countQuery.data?.unread ?? 0;
+  const shortLabel = (type: NotificationType) => t(`notifType.${type}` as const);
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button
         type="button"
         className="qp-bell"
-        aria-label={`Notifications (${unread} unread)`}
+        aria-label={`${t("notifications.title")} (${unread})`}
         onClick={() => setOpen((o) => !o)}
       >
         <span aria-hidden>🔔</span>
@@ -75,7 +68,7 @@ export function NotificationBell() {
       {open ? (
         <div className="qp-bell-popover">
           <div className="qp-bell-header">
-            <strong>Notifications</strong>
+            <strong>{t("notifications.title")}</strong>
             {unread > 0 ? (
               <button
                 type="button"
@@ -84,18 +77,19 @@ export function NotificationBell() {
                 onClick={() => markAll.mutate()}
                 disabled={markAll.isPending}
               >
-                Mark all read
+                {t("notifications.markAllRead")}
               </button>
             ) : null}
           </div>
           {listQuery.isLoading ? (
-            <p style={{ padding: 12, color: "var(--color-muted)" }}>Loading...</p>
+            <p style={{ padding: 12, color: "var(--color-muted)" }}>{t("common.loading")}</p>
           ) : listQuery.data && listQuery.data.items.length > 0 ? (
             <ul className="qp-bell-list">
               {listQuery.data.items.map((n) => (
                 <BellItem
                   key={n.id}
                   notification={n}
+                  shortLabel={shortLabel(n.type)}
                   onClick={() => {
                     if (!n.read_at) markRead.mutate(n.id);
                     setOpen(false);
@@ -105,7 +99,7 @@ export function NotificationBell() {
             </ul>
           ) : (
             <p style={{ padding: 12, color: "var(--color-muted)" }}>
-              You're all caught up.
+              {t("notifications.allCaughtUp")}
             </p>
           )}
           <div className="qp-bell-footer">
@@ -114,7 +108,7 @@ export function NotificationBell() {
               onClick={() => setOpen(false)}
               style={{ fontSize: "0.85rem" }}
             >
-              View all →
+              {t("notifications.viewAll")}
             </Link>
           </div>
         </div>
@@ -125,9 +119,11 @@ export function NotificationBell() {
 
 function BellItem({
   notification,
+  shortLabel,
   onClick,
 }: {
   notification: Notification;
+  shortLabel: string;
   onClick: () => void;
 }) {
   const studentId =
@@ -141,9 +137,7 @@ function BellItem({
     >
       <Link href={href} onClick={onClick}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-          <strong style={{ fontSize: "0.85rem" }}>
-            {TYPE_LABEL[notification.type]}
-          </strong>
+          <strong style={{ fontSize: "0.85rem" }}>{shortLabel}</strong>
           <span style={{ color: "var(--color-muted)", fontSize: "0.7rem" }}>
             {new Date(notification.created_at).toLocaleDateString()}
           </span>

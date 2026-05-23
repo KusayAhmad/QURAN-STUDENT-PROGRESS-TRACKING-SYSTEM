@@ -3,22 +3,25 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { LangSwitcher } from "@/components/LangSwitcher";
 import { NotificationBell } from "@/components/NotificationBell";
+import { useT } from "@/lib/useT";
 import { useAuthStore } from "@/store/auth";
-
-const NAV: { href: string; label: string; adminOnly?: boolean }[] = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/students", label: "Students" },
-  { href: "/matrix", label: "Matrix" },
-  { href: "/admin/users", label: "Users", adminOnly: true },
-  { href: "/admin/import", label: "Import", adminOnly: true },
-];
 
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useT();
   const user = useAuthStore((s) => s.user);
   const clear = useAuthStore((s) => s.clear);
+
+  const NAV: { href: string; labelKey: Parameters<typeof t>[0]; adminOnly?: boolean }[] = [
+    { href: "/dashboard", labelKey: "nav.dashboard" },
+    { href: "/students", labelKey: "nav.students" },
+    { href: "/matrix", labelKey: "nav.matrix" },
+    { href: "/admin/users", labelKey: "nav.users", adminOnly: true },
+    { href: "/admin/import", labelKey: "nav.import", adminOnly: true },
+  ];
 
   const handleLogout = () => {
     clear();
@@ -29,7 +32,7 @@ export function Header() {
     <header className="qp-header">
       <div className="qp-header-inner">
         <Link href="/dashboard" className="qp-brand">
-          Quran Progress
+          {t("app.title")}
         </Link>
         <nav className="qp-nav">
           {NAV.filter((n) => !n.adminOnly || user?.role === "ADMIN").map((item) => {
@@ -40,7 +43,7 @@ export function Header() {
                 href={item.href}
                 className={active ? "qp-nav-link active" : "qp-nav-link"}
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -49,14 +52,17 @@ export function Header() {
           {user ? (
             <>
               <NotificationBell />
+              <LangSwitcher />
               <span className="qp-user-name">
                 {user.name} <span className="qp-role">{user.role}</span>
               </span>
               <button className="qp-btn-ghost" onClick={handleLogout}>
-                Logout
+                {t("nav.logout")}
               </button>
             </>
-          ) : null}
+          ) : (
+            <LangSwitcher />
+          )}
         </div>
       </div>
     </header>

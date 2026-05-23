@@ -3,11 +3,14 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 
+import { LangSwitcher } from "@/components/LangSwitcher";
 import { auth } from "@/lib/api";
+import { useT } from "@/lib/useT";
 import { useAuthStore } from "@/store/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useT();
   const accessToken = useAuthStore((s) => s.accessToken);
   const setTokens = useAuthStore((s) => s.setTokens);
   const setUser = useAuthStore((s) => s.setUser);
@@ -17,7 +20,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // If already logged in, bounce to dashboard.
   useEffect(() => {
     if (accessToken) router.replace("/dashboard");
   }, [accessToken, router]);
@@ -29,7 +31,6 @@ export default function LoginPage() {
     try {
       const tokens = await auth.login(email, password);
       setTokens(tokens.access_token, tokens.refresh_token);
-      // Fetch the user record so the header can show the name and we can role-gate.
       const me = await auth.me();
       setUser(me);
       router.replace("/dashboard");
@@ -43,13 +44,24 @@ export default function LoginPage() {
   return (
     <div className="qp-login-shell">
       <div className="qp-login-card">
-        <h1>Sign in</h1>
-        <p style={{ color: "var(--color-muted)", marginTop: 0 }}>
-          Quran Student Progress Tracking
-        </p>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
+          <div>
+            <h1>{t("auth.signIn")}</h1>
+            <p style={{ color: "var(--color-muted)", marginTop: 0 }}>
+              {t("app.title")}
+            </p>
+          </div>
+          <LangSwitcher />
+        </div>
         <form onSubmit={handleSubmit} className="qp-form">
           <div>
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t("auth.email")}</label>
             <input
               id="email"
               type="email"
@@ -60,7 +72,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t("auth.password")}</label>
             <input
               id="password"
               type="password"
@@ -72,13 +84,11 @@ export default function LoginPage() {
           </div>
           {error ? <div className="qp-error">{error}</div> : null}
           <button type="submit" className="qp-btn" disabled={submitting}>
-            {submitting ? "Signing in..." : "Sign in"}
+            {submitting ? t("auth.signingIn") : t("auth.signIn")}
           </button>
         </form>
         <p style={{ marginTop: 16, fontSize: "0.8rem", color: "var(--color-muted)" }}>
-          Demo seed creates <code>teacher@example.com</code> /{" "}
-          <code>teacher123!</code> and <code>admin@example.com</code> /{" "}
-          <code>admin123!</code>.
+          {t("auth.demoHint")}
         </p>
       </div>
     </div>

@@ -564,3 +564,70 @@ button.qp-status:hover {
 .qp-offline-banner strong {
   margin-right: 6px;
 }
+
+
+
+/* ---- Language switcher ---- */
+.qp-lang-switch {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+.qp-lang-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.qp-lang-btn:not(:last-child) {
+  border-inline-end: 1px solid var(--color-border);
+}
+.qp-lang-btn.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* ---- RTL adjustments ----
+   Most layout uses logical properties (margin-inline, padding-inline,
+   border-inline-*) so the default flow flips automatically. The few rules
+   below handle elements where flipping the visual axis matters.
+*/
+
+/* The bell popover anchors to the right in LTR; in RTL anchor to the left
+   so it doesn't fall off-screen. */
+[dir="rtl"] .qp-bell-popover {
+  right: auto;
+  left: 0;
+}
+
+/* Sticky-left student column in the matrix flips to sticky-right under RTL.
+   The header row's sticky-left corner cell flips too. */
+[dir="rtl"] .qp-grid-table th.qp-grid-corner,
+[dir="rtl"] .qp-grid-table th.qp-grid-rowhead,
+[dir="rtl"] .qp-grid-table td.qp-grid-rowhead {
+  left: auto;
+  right: 0;
+  border-inline-end: 2px solid var(--color-border);
+  border-right: none; /* unset the LTR-specific rule */
+}
+
+/* The "Regression" pill border-left on unread items should flip too. */
+[dir="rtl"] .qp-bell-item-unread {
+  border-left: none;
+  border-right: 3px solid var(--color-primary);
+}
+[dir="rtl"] .qp-bell-item-unread a {
+  padding-left: 12px;
+  padding-right: 9px;
+}
+
+/* The Arabic numeric superscript inside the surah cell glyph reads cleaner
+   left-to-right always, so we keep its embed. */
+.qp-surah-num,
+.qp-grid-table thead th {
+  unicode-bidi: isolate;
+}

@@ -10,6 +10,7 @@ import {
   type MemorizationStatus,
   type Surah,
 } from "@/lib/types";
+import { useT } from "@/lib/useT";
 
 const STATUS_LETTER: Record<MemorizationStatus, string> = {
   NOT_STARTED: "",
@@ -20,13 +21,13 @@ const STATUS_LETTER: Record<MemorizationStatus, string> = {
   MASTERED: "M",
 };
 
-const LEGEND: { status: MemorizationStatus; label: string }[] = [
-  { status: "MASTERED", label: "Mastered" },
-  { status: "STRONG", label: "Strong" },
-  { status: "REVIEW_REQUIRED", label: "Review" },
-  { status: "WEAK", label: "Weak" },
-  { status: "IN_PROGRESS", label: "In progress" },
-  { status: "NOT_STARTED", label: "Not started" },
+const LEGEND_ORDER: MemorizationStatus[] = [
+  "MASTERED",
+  "STRONG",
+  "REVIEW_REQUIRED",
+  "WEAK",
+  "IN_PROGRESS",
+  "NOT_STARTED",
 ];
 
 interface EditTarget {
@@ -38,6 +39,7 @@ interface EditTarget {
 
 export default function MatrixPage() {
   const qc = useQueryClient();
+  const t = useT();
   const [includeArchived, setIncludeArchived] = useState(false);
   const [editing, setEditing] = useState<EditTarget | null>(null);
 
@@ -65,7 +67,6 @@ export default function MatrixPage() {
     },
   });
 
-  // Build a lookup of (studentId -> surahId -> MatrixCell) for quick render.
   const cellLookup = useMemo(() => {
     const map = new Map<string, Map<number, MatrixCell>>();
     matrixQuery.data?.students.forEach((s) => {
@@ -76,7 +77,7 @@ export default function MatrixPage() {
     return map;
   }, [matrixQuery.data]);
 
-  if (matrixQuery.isLoading) return <p>Loading matrix...</p>;
+  if (matrixQuery.isLoading) return <p>{t("common.loading")}</p>;
   if (matrixQuery.error) {
     return <p className="qp-error">{(matrixQuery.error as Error).message}</p>;
   }
@@ -93,29 +94,29 @@ export default function MatrixPage() {
           marginBottom: 12,
         }}
       >
-        <h1 style={{ margin: 0 }}>Matrix</h1>
+        <h1 style={{ margin: 0 }}>{t("matrix.title")}</h1>
         <label style={{ fontSize: "0.85rem" }}>
           <input
             type="checkbox"
             checked={includeArchived}
             onChange={(e) => setIncludeArchived(e.target.checked)}
-            style={{ width: "auto", marginRight: 6 }}
+            style={{ width: "auto", marginInlineEnd: 6 }}
           />
-          Include archived
+          {t("matrix.includeArchived")}
         </label>
       </div>
 
       <div className="qp-card" style={{ marginBottom: 12, padding: 12 }}>
-        <span style={{ color: "var(--color-muted)", marginRight: 12 }}>
-          Legend:
+        <span style={{ color: "var(--color-muted)", marginInlineEnd: 12 }}>
+          {t("matrix.legend")}
         </span>
-        {LEGEND.map((l) => (
+        {LEGEND_ORDER.map((s) => (
           <span
-            key={l.status}
-            className={`qp-status qp-status-${l.status.toLowerCase()}`}
-            style={{ marginRight: 6 }}
+            key={s}
+            className={`qp-status qp-status-${s.toLowerCase()}`}
+            style={{ marginInlineEnd: 6 }}
           >
-            {l.label}
+            {t(`status.${s}` as const)}
           </span>
         ))}
       </div>
@@ -123,8 +124,8 @@ export default function MatrixPage() {
       {students.length === 0 ? (
         <div className="qp-card">
           <p style={{ color: "var(--color-muted)", margin: 0 }}>
-            No students yet.{" "}
-            <Link href="/students">Add some on the Students page</Link>.
+            {t("matrix.empty")}{" "}
+            <Link href="/students">{t("students.title")}</Link>.
           </p>
         </div>
       ) : (
@@ -132,7 +133,7 @@ export default function MatrixPage() {
           <table className="qp-grid-table">
             <thead>
               <tr>
-                <th className="qp-grid-corner">Student ↓ / Surah →</th>
+                <th className="qp-grid-corner">{t("matrix.studentSurah")}</th>
                 {surahs.map((s) => (
                   <th key={s.id} title={`${s.surah_order}. ${s.surah_name_en}`}>
                     {s.surah_order}
@@ -164,9 +165,9 @@ export default function MatrixPage() {
                                 ? "qp-grid-cell qp-grid-cell-empty"
                                 : `qp-grid-cell qp-status-${status.toLowerCase()}`
                             }
-                            title={`${student.full_name} · ${surah.surah_name_en} · ${status}${
-                              cell ? ` · ${cell.completion_percent}%` : ""
-                            }`}
+                            title={`${student.full_name} · ${surah.surah_name_en} · ${t(
+                              `status.${status}` as const,
+                            )}${cell ? ` · ${cell.completion_percent}%` : ""}`}
                             onClick={() =>
                               setEditing({
                                 studentId: student.id,
@@ -222,6 +223,7 @@ function CellEditModal({
   saving: boolean;
   error: string | null;
 }) {
+  const t = useT();
   const [status, setStatus] = useState<MemorizationStatus>(
     target.current?.status ?? "NOT_STARTED",
   );
@@ -235,12 +237,12 @@ function CellEditModal({
         <h2 style={{ marginBottom: 4 }}>{target.studentName}</h2>
         <p style={{ color: "var(--color-muted)", marginTop: 0 }}>
           <span className="qp-surah-name-ar">{target.surah.surah_name_ar}</span>{" "}
-          · {target.surah.surah_name_en} · Surah #{target.surah.surah_order}
+          · {target.surah.surah_name_en} · #{target.surah.surah_order}
         </p>
 
         <div className="qp-form">
           <div>
-            <label>Status</label>
+            <label>{t("students.status")}</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {MEMORIZATION_STATUSES.map((s) => (
                 <button
@@ -253,13 +255,13 @@ function CellEditModal({
                     transform: s === status ? "scale(1.05)" : "scale(1)",
                   }}
                 >
-                  {s.replace("_", " ")}
+                  {t(`status.${s}` as const)}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <label>Completion %</label>
+            <label>{t("matrix.completion")}</label>
             <input
               type="number"
               min={0}
@@ -271,7 +273,7 @@ function CellEditModal({
           {error ? <div className="qp-error">{error}</div> : null}
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <button type="button" className="qp-btn-ghost" onClick={onClose}>
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="button"
@@ -279,7 +281,7 @@ function CellEditModal({
               disabled={saving}
               onClick={() => onSave(status, completion)}
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? t("common.saving") : t("common.save")}
             </button>
           </div>
         </div>
