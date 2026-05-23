@@ -2,8 +2,10 @@
 from fastapi import APIRouter
 
 from app.api.v1.routes import (
+    admin,
     analytics,
     auth,
+    classes,
     evaluations,
     observations,
     progress,
@@ -19,3 +21,5 @@ api_router.include_router(progress.router)
 api_router.include_router(evaluations.router)
 api_router.include_router(observations.router)
 api_router.include_router(analytics.router)
+api_router.include_router(classes.router)
+api_router.include_router(admin.router)

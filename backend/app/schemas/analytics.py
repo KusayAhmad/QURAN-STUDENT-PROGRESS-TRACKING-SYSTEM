@@ -1,10 +1,17 @@
 """Analytics response schemas (Module F)."""
-from datetime import datetime
+from datetime import date, datetime
+from enum import Enum
 from uuid import UUID
 
 from pydantic import BaseModel
 
 from app.models.memorization_progress import MemorizationStatus
+
+
+class TimeBucket(str, Enum):
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"
 
 
 class StatusCounts(BaseModel):
@@ -59,10 +66,27 @@ class SchoolAnalytics(BaseModel):
     counts_by_status: StatusCounts
 
 
+class EvaluationTrendPoint(BaseModel):
+    """One row in the evaluation-trend time series."""
+
+    period_start: date
+    avg_overall_score: float
+    eval_count: int
+
+
+class EvaluationTrend(BaseModel):
+    student_id: UUID
+    bucket: TimeBucket
+    points: list[EvaluationTrendPoint]
+
+
 __all__ = [
     "ClassAnalytics",
+    "EvaluationTrend",
+    "EvaluationTrendPoint",
     "MemorizationStatus",
     "SchoolAnalytics",
     "StatusCounts",
     "StudentAnalytics",
+    "TimeBucket",
 ]
