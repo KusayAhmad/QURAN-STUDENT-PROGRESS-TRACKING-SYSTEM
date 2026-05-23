@@ -133,6 +133,7 @@ progress, so history is effectively immutable.
 | `observations` | Typed teacher notes | FK student, FK teacher |
 | `progress_history` | Append-only snapshot per progress write | FK progress, FK teacher |
 | `audit_logs` | Append-only mutation trail (actor, action, old/new JSON) | FK actor, FK school |
+| `notifications` | Per-user inbox; produced server-side from event triggers | FK recipient_user_id, FK school_id (nullable) |
 
 ## 7a. Analytics definitions (MVP-2)
 
@@ -225,3 +226,45 @@ Decisions worth flagging:
 
 If this document and the code disagree, the code wins. Keep this document in
 sync via PR.
+
+
+
+## 12. Notifications (current state)
+
+In-app only for the moment. The schema and the `_deliver()` indirection in
+`notification_service` are designed so adding email and push channels later
+is purely additive — no changes to the call sites that produce
+notifications.
+
+### Triggers (event-driven, fire synchronously inside the service that
+caused the event)
+
+| Trigger | Recipients | Type |
+|---|---|---|
+| Student created | All admins in school, minus actor | `STUDENT_ADDED` |
+| Progress STRONG/MASTERED → WEAK/REVIEW_REQUIRED | Class teacher (if any) + all admins, minus actor | `PROGRESS_REGRESSED` |
+| Evaluation `overall_score < 60` | Class teacher (if any) + all admins, minus actor | `LOW_EVALUATION` |
+| (Reserved) Stale progress > 30 days | Class teacher / admins | `OVERDUE_REVIEW` (deferred) |
+
+### Why event-driven, not Celery beat
+
+For MVP, notifications fire on the request that caused the change. This:
+
+- Has no external infrastructure (no Redis, no broker)
+- Stays consistent (a notification is in the same DB transaction as the
+  event that produced it; either both commit or neither does)
+- Returns useful inbox state immediately
+
+The "overdue review" trigger genuinely needs a scheduler — that's the gate
+for adding Celery + beat in a Phase-2 slice.
+
+### Recipient resolution
+
+`_recipients_for_student()` builds the recipient set as:
+
+```
+recipients = ({class_teacher} ∪ {admins in school}) \ {actor}
+```
+
+The actor is always excluded so a teacher who downgrades a student's status
+doesn't get pinged for their own action.

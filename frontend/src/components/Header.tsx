@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { NotificationBell } from "@/components/NotificationBell";
 import { useAuthStore } from "@/store/auth";
 
 const NAV: { href: string; label: string; adminOnly?: boolean }[] = [
@@ -47,6 +48,7 @@ export function Header() {
         <div className="qp-user">
           {user ? (
             <>
+              <NotificationBell />
               <span className="qp-user-name">
                 {user.name} <span className="qp-role">{user.role}</span>
               </span>
