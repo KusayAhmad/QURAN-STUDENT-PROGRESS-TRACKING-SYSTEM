@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { EvaluationTrendChart } from "@/components/EvaluationTrendChart";
 import { EvaluationsPanel } from "@/components/EvaluationsPanel";
 import { ObservationsPanel } from "@/components/ObservationsPanel";
 import { ProgressMatrix } from "@/components/ProgressMatrix";
@@ -151,7 +152,12 @@ export default function StudentDetailPage() {
       </div>
 
       {tab === "matrix" ? <ProgressMatrix studentId={studentId} /> : null}
-      {tab === "evaluations" ? <EvaluationsPanel studentId={studentId} /> : null}
+      {tab === "evaluations" ? (
+        <>
+          <EvaluationTrendChart studentId={studentId} />
+          <EvaluationsPanel studentId={studentId} />
+        </>
+      ) : null}
       {tab === "observations" ? <ObservationsPanel studentId={studentId} /> : null}
     </div>
   );

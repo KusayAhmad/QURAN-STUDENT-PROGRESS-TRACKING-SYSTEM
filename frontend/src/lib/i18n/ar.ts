@@ -11,6 +11,7 @@ export const ar: Record<keyof typeof en, string> = {
   "nav.matrix": "المصفوفة",
   "nav.classes": "الفصول",
   "nav.users": "المستخدمون",
+  "nav.auditLogs": "السجلات",
   "nav.import": "استيراد",
   "nav.notifications": "الإشعارات",
   "nav.logout": "تسجيل الخروج",

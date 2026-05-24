@@ -21,6 +21,7 @@ export function Header() {
     { href: "/matrix", labelKey: "nav.matrix" },
     { href: "/classes", labelKey: "nav.classes" },
     { href: "/admin/users", labelKey: "nav.users", adminOnly: true },
+    { href: "/admin/audit-logs", labelKey: "nav.auditLogs", adminOnly: true },
     { href: "/admin/import", labelKey: "nav.import", adminOnly: true },
   ];
 
