@@ -32,12 +32,14 @@ async def list_students(
     include_archived: bool,
     limit: int,
     offset: int,
+    class_id: UUID | None = None,
 ) -> tuple[list[Student], int]:
     return await student_repo.list_for_school(
         db,
         school_id=school_id,
         search=search,
         include_archived=include_archived,
+        class_id=class_id,
         limit=limit,
         offset=offset,
     )

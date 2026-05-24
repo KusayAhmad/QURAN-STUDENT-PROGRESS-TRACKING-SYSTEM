@@ -110,6 +110,16 @@ export const en = {
   "pwa.offlineDesc":
     "Reads still work from cache. New changes can't be saved until you reconnect.",
 
+  // Class detail
+  "classDetail.studentCount": "Students",
+  "classDetail.avgMastery": "Avg. mastery",
+  "classDetail.avgCompletion": "Avg. completion",
+  "classDetail.statusDistribution": "Status distribution across class",
+  "classDetail.statusHelp": "Aggregate of every (student, surah) slot in this class.",
+  "classDetail.members": "Members",
+  "classDetail.noMembers": "No students assigned to this class yet.",
+  "classDetail.openStudent": "Open profile →",
+
   // Revision suggestions (§12-C)
   "revision.title": "Suggested revisions",
   "revision.subtitle": "Surahs to revisit, ranked by urgency.",

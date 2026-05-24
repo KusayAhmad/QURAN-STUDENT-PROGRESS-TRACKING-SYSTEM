@@ -112,6 +112,16 @@ export const ar: Record<keyof typeof en, string> = {
   "pwa.offlineDesc":
     "القراءة لا تزال تعمل من الذاكرة المؤقتة. لا يمكن حفظ التغييرات الجديدة حتى تعود للاتصال.",
 
+  // Class detail
+  "classDetail.studentCount": "الطلاب",
+  "classDetail.avgMastery": "متوسط الإتقان",
+  "classDetail.avgCompletion": "متوسط الإكمال",
+  "classDetail.statusDistribution": "توزيع الحالة في الفصل",
+  "classDetail.statusHelp": "إجمالي كل (طالب، سورة) في هذا الفصل.",
+  "classDetail.members": "الأعضاء",
+  "classDetail.noMembers": "لم يتم تعيين أي طالب لهذا الفصل بعد.",
+  "classDetail.openStudent": "فتح الملف ←",
+
   // Revision suggestions (§12-C)
   "revision.title": "مراجعات مقترحة",
   "revision.subtitle": "سور تحتاج إلى مراجعة، مرتبة حسب الأولوية.",

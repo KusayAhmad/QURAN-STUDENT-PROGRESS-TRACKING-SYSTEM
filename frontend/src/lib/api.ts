@@ -116,12 +116,14 @@ export const students = {
   list: (params: {
     search?: string;
     include_archived?: boolean;
+    class_id?: string;
     limit?: number;
     offset?: number;
   } = {}) => {
     const qs = new URLSearchParams();
     if (params.search) qs.set("search", params.search);
     if (params.include_archived) qs.set("include_archived", "true");
+    if (params.class_id) qs.set("class_id", params.class_id);
     qs.set("limit", String(params.limit ?? 50));
     qs.set("offset", String(params.offset ?? 0));
     return request<PaginatedStudents>(`/students?${qs.toString()}`);
@@ -243,10 +245,28 @@ export const classes = {
 };
 
 // ---- Analytics ----
+export interface ClassAnalyticsData {
+  class_id: string;
+  class_name: string;
+  student_count: number;
+  avg_mastery_percent: number;
+  avg_completion_pct: number;
+  counts_by_status: {
+    NOT_STARTED: number;
+    IN_PROGRESS: number;
+    REVIEW_REQUIRED: number;
+    WEAK: number;
+    STRONG: number;
+    MASTERED: number;
+  };
+}
+
 export const analytics = {
   student: (studentId: string) =>
     request<StudentAnalytics>(`/analytics/student/${studentId}`),
   school: () => request<SchoolAnalytics>("/analytics/school"),
+  class: (classId: string) =>
+    request<ClassAnalyticsData>(`/analytics/class/${classId}`),
 };
 
 // ---- Revision suggestions (§12-C) ----
