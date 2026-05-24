@@ -36,6 +36,7 @@ async def list_students(
     user: SchoolUser,
     search: str | None = Query(default=None),
     include_archived: bool = Query(default=False),
+    class_id: UUID | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> dict:
@@ -44,6 +45,7 @@ async def list_students(
         school_id=user.school_id,
         search=search,
         include_archived=include_archived,
+        class_id=class_id,
         limit=limit,
         offset=offset,
     )

@@ -13,6 +13,7 @@ async def list_for_school(
     school_id: UUID,
     search: str | None = None,
     include_archived: bool = False,
+    class_id: UUID | None = None,
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[Student], int]:
@@ -21,6 +22,8 @@ async def list_for_school(
         stmt = stmt.where(Student.status != StudentStatus.ARCHIVED)
     if search:
         stmt = stmt.where(Student.full_name.ilike(f"%{search}%"))
+    if class_id is not None:
+        stmt = stmt.where(Student.class_id == class_id)
 
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total = (await db.execute(count_stmt)).scalar_one()

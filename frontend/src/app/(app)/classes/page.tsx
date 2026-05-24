@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { type FormEvent, useState } from "react";
 
 import { classes, students, type ClassItem } from "@/lib/api";
@@ -63,7 +64,9 @@ export default function ClassesPage() {
             <tbody>
               {listQuery.data?.map((c) => (
                 <tr key={c.id}>
-                  <td style={{ fontWeight: 500 }}>{c.name}</td>
+                  <td style={{ fontWeight: 500 }}>
+                    <Link href={`/classes/${c.id}`}>{c.name}</Link>
+                  </td>
                   <td style={{ color: "var(--color-muted)" }}>{c.academic_year}</td>
                   <td>
                     <div style={{ display: "flex", gap: 8 }}>
