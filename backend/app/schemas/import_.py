@@ -1,5 +1,5 @@
 """Schemas for the legacy-Excel import endpoint."""
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ImportError(BaseModel):
@@ -12,4 +12,4 @@ class ImportResult(BaseModel):
     students_created: int = 0
     students_matched: int = 0
     progress_recorded: int = 0
-    errors: list[ImportError] = []
+    errors: list[ImportError] = Field(default_factory=list)

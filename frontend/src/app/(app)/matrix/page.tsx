@@ -146,11 +146,11 @@ export default function MatrixPage() {
                 const studentCells = cellLookup.get(student.id);
                 return (
                   <tr key={student.id}>
-                    <td className="qp-grid-rowhead">
+                    <th scope="row" className="qp-grid-rowhead">
                       <Link href={`/students/${student.id}`}>
                         {student.full_name}
                       </Link>
-                    </td>
+                    </th>
                     {surahs.map((surah) => {
                       const cell = studentCells?.get(surah.id);
                       const status: MemorizationStatus =
@@ -165,9 +165,10 @@ export default function MatrixPage() {
                                 ? "qp-grid-cell qp-grid-cell-empty"
                                 : `qp-grid-cell qp-status-${status.toLowerCase()}`
                             }
-                            title={`${student.full_name} · ${surah.surah_name_en} · ${t(
-                              `status.${status}` as const,
-                            )}${cell ? ` · ${cell.completion_percent}%` : ""}`}
+                            title={`${student.full_name} · ${surah.surah_name_en} · ${status}${
+                              cell ? ` · ${cell.completion_percent}%` : ""
+                            }`}
+                            aria-label={`${student.full_name} – ${surah.surah_name_en}: ${status}`}
                             onClick={() =>
                               setEditing({
                                 studentId: student.id,
