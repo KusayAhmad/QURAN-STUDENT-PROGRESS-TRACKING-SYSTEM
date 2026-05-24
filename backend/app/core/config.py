@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
 
+    # Rate limiting
+    rate_limit_per_minute: int = Field(default=60, description="Default requests/minute per IP")
+    rate_limit_auth_per_minute: int = Field(default=10, description="Auth endpoint requests/minute per IP")
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -171,8 +171,8 @@ just require `SchoolUser` (any role + has school).
 | **MVP-1** ✓ | Auth + Students + Surahs + Progress | The Excel replacement |
 | **MVP-2** ✓ | Evaluations + Observations + Analytics | 6-axis exam scoring, typed teacher notes, student/class/school KPIs, evaluation-trend time series, evaluation update endpoint |
 | **MVP-3** ✓ | Audit logs + Versioned progress history + Admin endpoints | Per-mutation audit trail, per-surah status timeline, classes CRUD, admin user list |
-| Phase-2 | Multi-school admin, notifications, PWA, Excel import | Scale & onboarding |
-| Phase-3 | AI revision suggestions, predictive risk, parent/student portals | Differentiators |
+| Phase-2 ✓ (in progress) | PWA, RTL/Arabic i18n, offline write queue, rate limiting, class assignment UI, **revision suggestions** | Scale & onboarding |
+| Phase-3 | Predictive risk, parent/student portals, learned scoring model | Differentiators |
 
 ## 10. Known limitations & deferred work
 
@@ -225,6 +225,35 @@ Decisions worth flagging:
 
 If this document and the code disagree, the code wins. Keep this document in
 sync via PR.
+
+## 13. Smart revision suggestions (§12-C)
+
+Rule-based recommender that ranks surahs a student should revisit. Lives in
+`app/services/revision_service.py` — a single composition point so the rule
+table can be replaced with a learned model later without touching the route
+or schema.
+
+The endpoint is `GET /api/v1/students/{id}/revision-suggestions?limit=N`
+(default 10, cap 50). Each suggestion carries:
+
+- `current_status`, `completion_percent`, `last_reviewed_at`,
+  `days_since_review` — context for the teacher.
+- `reason` ∈ {`WEAK`, `REVIEW_REQUIRED`, `STALE_MASTERED`, `STALE_STRONG`,
+  `IN_PROGRESS`} — the *single* most-relevant reason this surah surfaced.
+- `priority_score` — numeric ordering signal; the list is pre-sorted desc.
+
+**Rules** (top of `revision_service.py`, deliberately module-level):
+- WEAK → always highest tier; lower completion_percent bumps the score.
+- REVIEW_REQUIRED → second tier; longer-since-reviewed bumps the score.
+- STRONG unreviewed > 14 days → `STALE_STRONG`.
+- MASTERED unreviewed > 30 days → `STALE_MASTERED`.
+- IN_PROGRESS surahs ≥ 10% complete keep momentum; < 10% are filtered out.
+- NOT_STARTED is *never* suggested — student hasn't begun.
+
+**Why not ML:** volume is tiny (≤114 progress rows per student), reasons must
+be explainable to teachers, and the rules already encode the cadence most
+huffaz teachers use. Replacing the scoring function with a learned model is
+a single-file change.
 
 
 

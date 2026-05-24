@@ -15,6 +15,7 @@ import type {
   PaginatedStudents,
   Progress,
   ProgressHistoryEntry,
+  RevisionSuggestionList,
   SchoolAnalytics,
   Student,
   StudentAnalytics,
@@ -76,11 +77,27 @@ async function request<T>(
     body = JSON.stringify(init.json);
   }
 
-  const res = await fetch(`${BASE}/api/v1${path}`, {
-    ...init,
-    headers,
-    body,
-  });
+  const url = `${BASE}/api/v1${path}`;
+  const fetchInit: RequestInit = { ...init, headers, body };
+
+  // For mutations, use the offline queue wrapper so network failures while
+  // offline get queued instead of throwing.
+  const isGet = !init.method || init.method === "GET";
+  let res: Response;
+
+  if (!isGet) {
+    const { fetchWithOfflineQueue } = await import("@/lib/offlineRequest");
+    const result = await fetchWithOfflineQueue(url, fetchInit);
+    if (result === "QUEUED") {
+      // The mutation was queued for later replay. Return undefined to the
+      // caller — TanStack Query's onSuccess will fire, which is correct
+      // (the user's intent is captured). The SyncManager will replay later.
+      return undefined as T;
+    }
+    res = result;
+  } else {
+    res = await fetch(url, fetchInit);
+  }
 
   if (res.status === 401) {
     // Attempt a single-flight token refresh before clearing auth
@@ -162,12 +179,14 @@ export const students = {
   list: (params: {
     search?: string;
     include_archived?: boolean;
+    class_id?: string;
     limit?: number;
     offset?: number;
   } = {}) => {
     const qs = new URLSearchParams();
     if (params.search) qs.set("search", params.search);
     if (params.include_archived) qs.set("include_archived", "true");
+    if (params.class_id) qs.set("class_id", params.class_id);
     qs.set("limit", String(params.limit ?? 50));
     qs.set("offset", String(params.offset ?? 0));
     return request<PaginatedStudents>(`/students?${qs.toString()}`);
@@ -267,11 +286,60 @@ export const observations = {
     request<void>(`/observations/${observationId}`, { method: "DELETE" }),
 };
 
+// ---- Classes ----
+export interface ClassItem {
+  id: string;
+  school_id: string;
+  teacher_id: string | null;
+  name: string;
+  academic_year: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const classes = {
+  list: () => request<ClassItem[]>("/classes"),
+  get: (id: string) => request<ClassItem>(`/classes/${id}`),
+  create: (data: { name: string; academic_year: string; teacher_id?: string | null }) =>
+    request<ClassItem>("/classes", { method: "POST", json: data }),
+  update: (id: string, data: { name?: string; academic_year?: string; teacher_id?: string | null }) =>
+    request<ClassItem>(`/classes/${id}`, { method: "PUT", json: data }),
+  remove: (id: string) => request<void>(`/classes/${id}`, { method: "DELETE" }),
+};
+
 // ---- Analytics ----
+export interface ClassAnalyticsData {
+  class_id: string;
+  class_name: string;
+  student_count: number;
+  avg_mastery_percent: number;
+  avg_completion_pct: number;
+  counts_by_status: {
+    NOT_STARTED: number;
+    IN_PROGRESS: number;
+    REVIEW_REQUIRED: number;
+    WEAK: number;
+    STRONG: number;
+    MASTERED: number;
+  };
+}
+
 export const analytics = {
   student: (studentId: string) =>
     request<StudentAnalytics>(`/analytics/student/${studentId}`),
   school: () => request<SchoolAnalytics>("/analytics/school"),
+  class: (classId: string) =>
+    request<ClassAnalyticsData>(`/analytics/class/${classId}`),
+};
+
+// ---- Revision suggestions (§12-C) ----
+export const revision = {
+  suggest: (studentId: string, limit?: number) => {
+    const qs = limit ? `?limit=${limit}` : "";
+    return request<RevisionSuggestionList>(
+      `/students/${studentId}/revision-suggestions${qs}`,
+    );
+  },
 };
 
 // ---- Admin ----

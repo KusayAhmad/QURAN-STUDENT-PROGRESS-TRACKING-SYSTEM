@@ -6,9 +6,11 @@ import { type FormEvent, useState } from "react";
 
 import { students } from "@/lib/api";
 import type { StudentGender } from "@/lib/types";
+import { useT } from "@/lib/useT";
 
 export default function StudentsPage() {
   const qc = useQueryClient();
+  const t = useT();
   const [search, setSearch] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -28,19 +30,19 @@ export default function StudentsPage() {
           marginBottom: 16,
         }}
       >
-        <h1 style={{ margin: 0 }}>Students</h1>
+        <h1 style={{ margin: 0 }}>{t("students.title")}</h1>
         <button className="qp-btn" onClick={() => setShowCreate(true)}>
-          New student
+          {t("students.new")}
         </button>
       </div>
 
       <div className="qp-card" style={{ marginBottom: 16 }}>
         <div className="qp-row">
           <div>
-            <label htmlFor="search">Search</label>
+            <label htmlFor="search">{t("common.search")}</label>
             <input
               id="search"
-              placeholder="Name..."
+              placeholder={t("students.fullName")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -51,9 +53,9 @@ export default function StudentsPage() {
                 type="checkbox"
                 checked={includeArchived}
                 onChange={(e) => setIncludeArchived(e.target.checked)}
-                style={{ width: "auto", marginRight: 8 }}
+                style={{ width: "auto", marginInlineEnd: 8 }}
               />
-              Show archived
+              {t("students.showArchived")}
             </label>
           </div>
         </div>
@@ -61,7 +63,7 @@ export default function StudentsPage() {
 
       <div className="qp-card" style={{ padding: 0 }}>
         {listQuery.isLoading ? (
-          <p style={{ padding: 16 }}>Loading...</p>
+          <p style={{ padding: 16 }}>{t("common.loading")}</p>
         ) : listQuery.error ? (
           <p className="qp-error" style={{ padding: 16 }}>
             {(listQuery.error as Error).message}
@@ -70,10 +72,10 @@ export default function StudentsPage() {
           <table className="qp-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Gender</th>
-                <th>Status</th>
-                <th>Guardian</th>
+                <th>{t("students.fullName")}</th>
+                <th>{t("students.gender")}</th>
+                <th>{t("students.status")}</th>
+                <th>{t("students.guardianName")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -83,13 +85,15 @@ export default function StudentsPage() {
                   <td>
                     <Link href={`/students/${s.id}`}>{s.full_name}</Link>
                   </td>
-                  <td>{s.gender}</td>
+                  <td>
+                    {s.gender === "MALE" ? t("students.male") : t("students.female")}
+                  </td>
                   <td>{s.status}</td>
                   <td style={{ color: "var(--color-muted)" }}>
                     {s.guardian_name ?? "-"}
                   </td>
                   <td>
-                    <Link href={`/students/${s.id}`}>Open</Link>
+                    <Link href={`/students/${s.id}`}>{t("matrix.openStudent")}</Link>
                   </td>
                 </tr>
               ))}
@@ -99,7 +103,7 @@ export default function StudentsPage() {
                     colSpan={5}
                     style={{ padding: 24, textAlign: "center", color: "var(--color-muted)" }}
                   >
-                    No students yet. Click <strong>New student</strong> to add one.
+                    {t("students.empty")}
                   </td>
                 </tr>
               ) : null}
@@ -128,6 +132,7 @@ function CreateStudentModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const t = useT();
   const [fullName, setFullName] = useState("");
   const [gender, setGender] = useState<StudentGender>("MALE");
   const [guardianName, setGuardianName] = useState("");
@@ -152,10 +157,10 @@ function CreateStudentModal({
   return (
     <div className="qp-overlay" onClick={onClose}>
       <div className="qp-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>New student</h2>
+        <h2>{t("students.new")}</h2>
         <form onSubmit={handleSubmit} className="qp-form">
           <div>
-            <label>Full name</label>
+            <label>{t("students.fullName")}</label>
             <input
               required
               value={fullName}
@@ -163,24 +168,24 @@ function CreateStudentModal({
             />
           </div>
           <div>
-            <label>Gender</label>
+            <label>{t("students.gender")}</label>
             <select
               value={gender}
               onChange={(e) => setGender(e.target.value as StudentGender)}
             >
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
+              <option value="MALE">{t("students.male")}</option>
+              <option value="FEMALE">{t("students.female")}</option>
             </select>
           </div>
           <div>
-            <label>Guardian name (optional)</label>
+            <label>{t("students.guardianName")} ({t("common.optional")})</label>
             <input
               value={guardianName}
               onChange={(e) => setGuardianName(e.target.value)}
             />
           </div>
           <div>
-            <label>Guardian phone (optional)</label>
+            <label>{t("students.guardianPhone")} ({t("common.optional")})</label>
             <input
               value={guardianPhone}
               onChange={(e) => setGuardianPhone(e.target.value)}
@@ -191,14 +196,14 @@ function CreateStudentModal({
           ) : null}
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <button type="button" className="qp-btn-ghost" onClick={onClose}>
-              Cancel
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               className="qp-btn"
               disabled={mutation.isPending}
             >
-              {mutation.isPending ? "Creating..." : "Create"}
+              {mutation.isPending ? t("common.creating") : t("common.create")}
             </button>
           </div>
         </form>

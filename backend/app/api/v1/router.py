@@ -10,6 +10,7 @@ from app.api.v1.routes import (
     notifications,
     observations,
     progress,
+    revision,
     students,
     surahs,
 )
@@ -24,4 +25,5 @@ api_router.include_router(observations.router)
 api_router.include_router(analytics.router)
 api_router.include_router(classes.router)
 api_router.include_router(notifications.router)
+api_router.include_router(revision.router)
 api_router.include_router(admin.router)
