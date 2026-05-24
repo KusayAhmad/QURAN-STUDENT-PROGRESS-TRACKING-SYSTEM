@@ -9,6 +9,7 @@ export const en = {
   "nav.matrix": "Matrix",
   "nav.classes": "Classes",
   "nav.users": "Users",
+  "nav.auditLogs": "Audit",
   "nav.import": "Import",
   "nav.notifications": "Notifications",
   "nav.logout": "Logout",

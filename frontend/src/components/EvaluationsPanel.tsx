@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 
 import { evaluations } from "@/lib/api";
-import type { EvaluationType } from "@/lib/types";
+import type { Evaluation, EvaluationType } from "@/lib/types";
 
 const TYPES: { value: EvaluationType; label: string }[] = [
   { value: "ORAL_RECITATION", label: "Oral recitation" },
@@ -16,18 +16,27 @@ const TYPES: { value: EvaluationType; label: string }[] = [
 
 export function EvaluationsPanel({ studentId }: { studentId: string }) {
   const qc = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [editing, setEditing] = useState<Evaluation | null>(null);
 
   const list = useQuery({
     queryKey: ["evaluations", studentId],
     queryFn: () => evaluations.list(studentId),
   });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["evaluations", studentId] });
+    qc.invalidateQueries({ queryKey: ["analytics", "student", studentId] });
+    // The trend chart shares the same backend data; bust its cache too so
+    // the chart redraws after a create/update/delete.
+    qc.invalidateQueries({
+      queryKey: ["analytics", "student", studentId, "evaluation-trend"],
+    });
+  };
+
   const remove = useMutation({
     mutationFn: (id: string) => evaluations.remove(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["evaluations", studentId] });
-      qc.invalidateQueries({ queryKey: ["analytics", "student", studentId] });
-    },
+    onSuccess: invalidate,
   });
 
   return (
@@ -41,7 +50,7 @@ export function EvaluationsPanel({ studentId }: { studentId: string }) {
         }}
       >
         <h2 style={{ margin: 0 }}>Evaluations</h2>
-        <button className="qp-btn" onClick={() => setShowForm(true)}>
+        <button className="qp-btn" onClick={() => setShowCreate(true)}>
           New evaluation
         </button>
       </div>
@@ -84,15 +93,24 @@ export function EvaluationsPanel({ studentId }: { studentId: string }) {
                     {e.notes ?? "-"}
                   </td>
                   <td>
-                    <button
-                      className="qp-btn-ghost"
-                      style={{ color: "var(--color-danger)" }}
-                      onClick={() => {
-                        if (confirm("Delete this evaluation?")) remove.mutate(e.id);
-                      }}
-                    >
-                      Delete
-                    </button>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        className="qp-btn-ghost"
+                        onClick={() => setEditing(e)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="qp-btn-ghost"
+                        style={{ color: "var(--color-danger)" }}
+                        onClick={() => {
+                          if (confirm("Delete this evaluation?"))
+                            remove.mutate(e.id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -101,14 +119,25 @@ export function EvaluationsPanel({ studentId }: { studentId: string }) {
         )}
       </div>
 
-      {showForm ? (
-        <NewEvaluationModal
+      {showCreate ? (
+        <EvaluationFormModal
           studentId={studentId}
-          onClose={() => setShowForm(false)}
-          onCreated={() => {
-            setShowForm(false);
-            qc.invalidateQueries({ queryKey: ["evaluations", studentId] });
-            qc.invalidateQueries({ queryKey: ["analytics", "student", studentId] });
+          onClose={() => setShowCreate(false)}
+          onSaved={() => {
+            setShowCreate(false);
+            invalidate();
+          }}
+        />
+      ) : null}
+
+      {editing ? (
+        <EvaluationFormModal
+          studentId={studentId}
+          existing={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            invalidate();
           }}
         />
       ) : null}
@@ -116,31 +145,55 @@ export function EvaluationsPanel({ studentId }: { studentId: string }) {
   );
 }
 
-function NewEvaluationModal({
+// Unified create/edit modal. The "edit" path consumes PUT /evaluations/{id}
+// which has been implemented backend-side since MVP-2 — no UI used it until
+// now. Form state initializes from `existing` so users see their current
+// values pre-filled.
+function EvaluationFormModal({
   studentId,
+  existing,
   onClose,
-  onCreated,
+  onSaved,
 }: {
   studentId: string;
+  existing?: Evaluation;
   onClose: () => void;
-  onCreated: () => void;
+  onSaved: () => void;
 }) {
   const today = new Date().toISOString().slice(0, 10);
-  const [type, setType] = useState<EvaluationType>("ORAL_RECITATION");
-  const [examDate, setExamDate] = useState<string>(today);
-  const [tajweed, setTajweed] = useState<string>("");
-  const [accuracy, setAccuracy] = useState<string>("");
-  const [fluency, setFluency] = useState<string>("");
-  const [retention, setRetention] = useState<string>("");
-  const [speed, setSpeed] = useState<string>("");
-  const [confidence, setConfidence] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
+  const isEdit = !!existing;
+  const [type, setType] = useState<EvaluationType>(
+    existing?.type ?? "ORAL_RECITATION",
+  );
+  const [examDate, setExamDate] = useState<string>(existing?.exam_date ?? today);
+  const [tajweed, setTajweed] = useState<string>(
+    existing?.tajweed_score?.toString() ?? "",
+  );
+  const [accuracy, setAccuracy] = useState<string>(
+    existing?.accuracy_score?.toString() ?? "",
+  );
+  const [fluency, setFluency] = useState<string>(
+    existing?.fluency_score?.toString() ?? "",
+  );
+  const [retention, setRetention] = useState<string>(
+    existing?.retention_score?.toString() ?? "",
+  );
+  const [speed, setSpeed] = useState<string>(
+    existing?.speed_score?.toString() ?? "",
+  );
+  const [confidence, setConfidence] = useState<string>(
+    existing?.confidence_score?.toString() ?? "",
+  );
+  const [overall, setOverall] = useState<string>(
+    existing?.overall_score?.toString() ?? "",
+  );
+  const [notes, setNotes] = useState<string>(existing?.notes ?? "");
 
   const toNum = (v: string) => (v === "" ? null : Number(v));
 
   const mutation = useMutation({
-    mutationFn: () =>
-      evaluations.create(studentId, {
+    mutationFn: () => {
+      const payload = {
         type,
         exam_date: examDate,
         tajweed_score: toNum(tajweed),
@@ -149,9 +202,14 @@ function NewEvaluationModal({
         retention_score: toNum(retention),
         speed_score: toNum(speed),
         confidence_score: toNum(confidence),
+        overall_score: toNum(overall),
         notes: notes || null,
-      }),
-    onSuccess: onCreated,
+      };
+      return isEdit
+        ? evaluations.update(existing!.id, payload)
+        : evaluations.create(studentId, payload);
+    },
+    onSuccess: onSaved,
   });
 
   function handleSubmit(e: FormEvent) {
@@ -185,7 +243,7 @@ function NewEvaluationModal({
   return (
     <div className="qp-overlay" onClick={onClose}>
       <div className="qp-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>New evaluation</h2>
+        <h2>{isEdit ? "Edit evaluation" : "New evaluation"}</h2>
         <form onSubmit={handleSubmit} className="qp-form">
           <div className="qp-row">
             <div>
@@ -208,8 +266,9 @@ function NewEvaluationModal({
             </div>
           </div>
           <p style={{ color: "var(--color-muted)", fontSize: "0.85rem", margin: 0 }}>
-            All scores 0–100, optional. If you leave overall blank, the backend
-            averages whatever axes you provide.
+            All scores 0–100, optional. If you leave overall blank when
+            creating, the backend averages whatever axes you provide. On
+            edit, scores are stored as-given (no recompute).
           </p>
           <div
             style={{
@@ -225,6 +284,7 @@ function NewEvaluationModal({
             <ScoreInput label="Speed" value={speed} set={setSpeed} />
             <ScoreInput label="Confidence" value={confidence} set={setConfidence} />
           </div>
+          <ScoreInput label="Overall (optional)" value={overall} set={setOverall} />
           <div>
             <label>Notes (optional)</label>
             <textarea

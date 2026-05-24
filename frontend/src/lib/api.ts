@@ -4,12 +4,15 @@
 
 import { useAuthStore } from "@/store/auth";
 import type {
+  AuditEntityType,
   CurrentUser,
   Evaluation,
+  EvaluationTrend,
   EvaluationType,
   MemorizationStatus,
   Observation,
   ObservationType,
+  PaginatedAuditLogs,
   PaginatedEvaluations,
   PaginatedObservations,
   PaginatedStudents,
@@ -21,6 +24,7 @@ import type {
   StudentAnalytics,
   StudentGender,
   Surah,
+  TimeBucket,
   TokenPair,
   UserRole,
 } from "@/lib/types";
@@ -201,6 +205,25 @@ export const evaluations = {
       method: "POST",
       json: data,
     }),
+  update: (
+    evaluationId: string,
+    data: {
+      type?: EvaluationType;
+      exam_date?: string;
+      tajweed_score?: number | null;
+      accuracy_score?: number | null;
+      fluency_score?: number | null;
+      retention_score?: number | null;
+      speed_score?: number | null;
+      confidence_score?: number | null;
+      overall_score?: number | null;
+      notes?: string | null;
+    },
+  ) =>
+    request<Evaluation>(`/evaluations/${evaluationId}`, {
+      method: "PUT",
+      json: data,
+    }),
   remove: (evaluationId: string) =>
     request<void>(`/evaluations/${evaluationId}`, { method: "DELETE" }),
 };
@@ -267,6 +290,10 @@ export const analytics = {
   school: () => request<SchoolAnalytics>("/analytics/school"),
   class: (classId: string) =>
     request<ClassAnalyticsData>(`/analytics/class/${classId}`),
+  evaluationTrend: (studentId: string, bucket: TimeBucket = "month") =>
+    request<EvaluationTrend>(
+      `/analytics/student/${studentId}/evaluation-trend?bucket=${bucket}`,
+    ),
 };
 
 // ---- Revision suggestions (§12-C) ----
@@ -328,6 +355,19 @@ export const matrixApi = {
 };
 
 export const admin = {
+  listAuditLogs: (params: {
+    entity_type?: AuditEntityType;
+    entity_id?: string;
+    limit?: number;
+    offset?: number;
+  } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.entity_type) qs.set("entity_type", params.entity_type);
+    if (params.entity_id) qs.set("entity_id", params.entity_id);
+    qs.set("limit", String(params.limit ?? 50));
+    qs.set("offset", String(params.offset ?? 0));
+    return request<PaginatedAuditLogs>(`/admin/audit-logs?${qs.toString()}`);
+  },
   listUsers: () => request<AdminUser[]>("/admin/users"),
   createUser: (data: {
     name: string;

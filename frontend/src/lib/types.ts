@@ -190,6 +190,49 @@ export interface SchoolAnalytics {
   counts_by_status: StatusCounts;
 }
 
+// ---- Evaluation trend (§7a — time-series of overall_score) ----
+export type TimeBucket = "day" | "week" | "month";
+
+export interface EvaluationTrendPoint {
+  period_start: string; // YYYY-MM-DD
+  avg_overall_score: number;
+  eval_count: number;
+}
+
+export interface EvaluationTrend {
+  student_id: string;
+  bucket: TimeBucket;
+  points: EvaluationTrendPoint[];
+}
+
+// ---- Audit log ----
+export type AuditEntityType =
+  | "STUDENT"
+  | "EVALUATION"
+  | "OBSERVATION"
+  | "PROGRESS"
+  | "USER"
+  | "CLASS";
+
+export interface AuditLogEntry {
+  id: string;
+  actor_id: string | null;
+  school_id: string | null;
+  action: AuditAction;
+  entity_type: AuditEntityType;
+  entity_id: string;
+  old_value: Record<string, unknown> | null;
+  new_value: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface PaginatedAuditLogs {
+  total: number;
+  limit: number;
+  offset: number;
+  items: AuditLogEntry[];
+}
+
 // ---- Revision suggestions (§12-C) ----
 export type RevisionReason =
   | "WEAK"
