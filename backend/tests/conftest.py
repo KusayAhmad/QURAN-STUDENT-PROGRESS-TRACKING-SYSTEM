@@ -9,6 +9,10 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-only-for-tests-do-not-use")
 os.environ.setdefault("DEBUG", "false")
 
+# Disable rate limiting for tests
+from app.core.rate_limit import disable_rate_limiting
+disable_rate_limiting()
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient

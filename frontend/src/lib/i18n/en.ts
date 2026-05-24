@@ -1,0 +1,163 @@
+// English source-of-truth dictionary. Adding a key here forces ar.ts to add it
+// (compile error in i18n.ts otherwise).
+
+export const en = {
+  // App / nav
+  "app.title": "Quran Progress Tracker",
+  "nav.dashboard": "Dashboard",
+  "nav.students": "Students",
+  "nav.matrix": "Matrix",
+  "nav.classes": "Classes",
+  "nav.users": "Users",
+  "nav.import": "Import",
+  "nav.notifications": "Notifications",
+  "nav.logout": "Logout",
+
+  // Auth
+  "auth.signIn": "Sign in",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.signingIn": "Signing in...",
+  "auth.demoHint":
+    "Demo seed creates teacher@example.com / teacher123! and admin@example.com / admin123!.",
+
+  // Common verbs / labels
+  "common.save": "Save",
+  "common.saving": "Saving...",
+  "common.cancel": "Cancel",
+  "common.delete": "Delete",
+  "common.edit": "Edit",
+  "common.create": "Create",
+  "common.creating": "Creating...",
+  "common.loading": "Loading...",
+  "common.search": "Search",
+  "common.close": "Close",
+  "common.archive": "Archive",
+  "common.active": "Active",
+  "common.inactive": "Inactive",
+  "common.you": "you",
+  "common.notes": "Notes",
+  "common.optional": "optional",
+  "common.history": "History",
+
+  // Dashboard
+  "dashboard.title": "Dashboard",
+  "dashboard.activeStudents": "Active students",
+  "dashboard.avgMastery": "Avg. mastery (school)",
+  "dashboard.avgCompletion": "Avg. completion (school)",
+  "dashboard.statusDistribution": "Status distribution across school",
+  "dashboard.statusHelp": "Aggregate of every (student, surah) slot.",
+
+  // Students
+  "students.title": "Students",
+  "students.new": "New student",
+  "students.fullName": "Full name",
+  "students.gender": "Gender",
+  "students.male": "Male",
+  "students.female": "Female",
+  "students.guardianName": "Guardian name",
+  "students.guardianPhone": "Guardian phone",
+  "students.status": "Status",
+  "students.empty": "No students yet. Click \"New student\" to add one.",
+  "students.showArchived": "Show archived",
+  "students.archiveConfirm":
+    "Archive this student? Their data is preserved but they will be hidden from the default list.",
+
+  // Matrix
+  "matrix.title": "Matrix",
+  "matrix.legend": "Legend:",
+  "matrix.includeArchived": "Include archived",
+  "matrix.empty": "No students yet.",
+  "matrix.openStudent": "Open student →",
+  "matrix.completion": "Completion %",
+  "matrix.studentSurah": "Student ↓ / Surah →",
+
+  // Memorization status
+  "status.NOT_STARTED": "Not started",
+  "status.IN_PROGRESS": "In progress",
+  "status.REVIEW_REQUIRED": "Review required",
+  "status.WEAK": "Weak",
+  "status.STRONG": "Strong",
+  "status.MASTERED": "Mastered",
+
+  // Notifications
+  "notifications.title": "Notifications",
+  "notifications.unreadOnly": "Unread only",
+  "notifications.markAllRead": "Mark all read",
+  "notifications.markRead": "Mark read",
+  "notifications.empty": "No notifications yet.",
+  "notifications.emptyUnread": "No unread notifications.",
+  "notifications.allCaughtUp": "You're all caught up.",
+  "notifications.viewAll": "View all →",
+  "notifications.openStudent": "Open student →",
+  "notifications.bellLabel": "Notifications ({count} unread)",
+
+  // Notification type labels (short, for the bell)
+  "notifType.PROGRESS_REGRESSED": "Regression",
+  "notifType.LOW_EVALUATION": "Low score",
+  "notifType.STUDENT_ADDED": "New student",
+  "notifType.OVERDUE_REVIEW": "Overdue",
+  "notifType.MANUAL": "Notice",
+  // Long labels for the inbox page
+  "notifType.PROGRESS_REGRESSED.long": "Regression",
+  "notifType.LOW_EVALUATION.long": "Low evaluation",
+  "notifType.STUDENT_ADDED.long": "New student",
+  "notifType.OVERDUE_REVIEW.long": "Overdue review",
+  "notifType.MANUAL.long": "Notice",
+
+  // Offline / PWA
+  "pwa.offlineTitle": "You're offline.",
+  "pwa.offlineDesc":
+    "Reads still work from cache. New changes can't be saved until you reconnect.",
+
+  // Classes list page
+  "classes.title": "Classes",
+  "classes.new": "New class",
+  "classes.empty": "No classes yet.",
+  "classes.emptyAdmin": "No classes yet. Click \"New class\" to create one.",
+  "classes.colName": "Name",
+  "classes.colYear": "Academic Year",
+  "classes.colActions": "Actions",
+  "classes.assignStudents": "Assign students",
+  "classes.editClass": "Edit class",
+  "classes.newClass": "New class",
+  "classes.className": "Class name",
+  "classes.academicYear": "Academic year",
+  "classes.deleteConfirm": "Delete class \"{name}\"?",
+  "classes.assignTitle": "Assign students to {name}",
+  "classes.assignHint": "Click a student to add/remove them from this class.",
+  "classes.inClass": "In this class ({count})",
+  "classes.available": "Available ({count})",
+  "classes.noneInClass": "None yet.",
+  "classes.allAssigned": "All students are already in this class.",
+  "classes.removeHint": "Click to remove from class",
+  "classes.addHint": "Click to add to class",
+
+  // Class detail
+  "classDetail.studentCount": "Students",
+  "classDetail.avgMastery": "Avg. mastery",
+  "classDetail.avgCompletion": "Avg. completion",
+  "classDetail.statusDistribution": "Status distribution across class",
+  "classDetail.statusHelp": "Aggregate of every (student, surah) slot in this class.",
+  "classDetail.members": "Members",
+  "classDetail.noMembers": "No students assigned to this class yet.",
+  "classDetail.openStudent": "Open profile →",
+
+  // Revision suggestions (§12-C)
+  "revision.title": "Suggested revisions",
+  "revision.subtitle": "Surahs to revisit, ranked by urgency.",
+  "revision.empty": "No revisions needed right now. Great work!",
+  "revision.loading": "Computing suggestions...",
+  "revision.daysAgo": "{days}d ago",
+  "revision.neverReviewed": "Never reviewed",
+  "revision.completion": "{percent}% complete",
+  // Reason labels
+  "revision.reason.WEAK": "Weak — needs reinforcement",
+  "revision.reason.REVIEW_REQUIRED": "Marked for review",
+  "revision.reason.STALE_MASTERED": "Mastered but not refreshed lately",
+  "revision.reason.STALE_STRONG": "Strong but not refreshed lately",
+  "revision.reason.IN_PROGRESS": "Keep momentum on this surah",
+
+  // Language switcher
+  "lang.toggle": "Language",
+} as const;
