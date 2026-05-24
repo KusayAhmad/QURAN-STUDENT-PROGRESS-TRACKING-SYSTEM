@@ -112,6 +112,29 @@ export const ar: Record<keyof typeof en, string> = {
   "pwa.offlineDesc":
     "القراءة لا تزال تعمل من الذاكرة المؤقتة. لا يمكن حفظ التغييرات الجديدة حتى تعود للاتصال.",
 
+  // Classes list page
+  "classes.title": "الفصول",
+  "classes.new": "فصل جديد",
+  "classes.empty": "لا توجد فصول بعد.",
+  "classes.emptyAdmin": "لا توجد فصول بعد. اضغط \"فصل جديد\" لإنشاء فصل.",
+  "classes.colName": "الاسم",
+  "classes.colYear": "السنة الدراسية",
+  "classes.colActions": "الإجراءات",
+  "classes.assignStudents": "تعيين الطلاب",
+  "classes.editClass": "تعديل الفصل",
+  "classes.newClass": "فصل جديد",
+  "classes.className": "اسم الفصل",
+  "classes.academicYear": "السنة الدراسية",
+  "classes.deleteConfirm": "حذف الفصل \"{name}\"؟",
+  "classes.assignTitle": "تعيين الطلاب إلى {name}",
+  "classes.assignHint": "اضغط على الطالب لإضافته أو إزالته من هذا الفصل.",
+  "classes.inClass": "في هذا الفصل ({count})",
+  "classes.available": "المتاحون ({count})",
+  "classes.noneInClass": "لا يوجد بعد.",
+  "classes.allAssigned": "جميع الطلاب مضافون بالفعل إلى هذا الفصل.",
+  "classes.removeHint": "اضغط للإزالة من الفصل",
+  "classes.addHint": "اضغط للإضافة إلى الفصل",
+
   // Class detail
   "classDetail.studentCount": "الطلاب",
   "classDetail.avgMastery": "متوسط الإتقان",

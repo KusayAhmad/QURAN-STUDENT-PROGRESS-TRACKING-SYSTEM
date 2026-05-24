@@ -110,6 +110,29 @@ export const en = {
   "pwa.offlineDesc":
     "Reads still work from cache. New changes can't be saved until you reconnect.",
 
+  // Classes list page
+  "classes.title": "Classes",
+  "classes.new": "New class",
+  "classes.empty": "No classes yet.",
+  "classes.emptyAdmin": "No classes yet. Click \"New class\" to create one.",
+  "classes.colName": "Name",
+  "classes.colYear": "Academic Year",
+  "classes.colActions": "Actions",
+  "classes.assignStudents": "Assign students",
+  "classes.editClass": "Edit class",
+  "classes.newClass": "New class",
+  "classes.className": "Class name",
+  "classes.academicYear": "Academic year",
+  "classes.deleteConfirm": "Delete class \"{name}\"?",
+  "classes.assignTitle": "Assign students to {name}",
+  "classes.assignHint": "Click a student to add/remove them from this class.",
+  "classes.inClass": "In this class ({count})",
+  "classes.available": "Available ({count})",
+  "classes.noneInClass": "None yet.",
+  "classes.allAssigned": "All students are already in this class.",
+  "classes.removeHint": "Click to remove from class",
+  "classes.addHint": "Click to add to class",
+
   // Class detail
   "classDetail.studentCount": "Students",
   "classDetail.avgMastery": "Avg. mastery",
