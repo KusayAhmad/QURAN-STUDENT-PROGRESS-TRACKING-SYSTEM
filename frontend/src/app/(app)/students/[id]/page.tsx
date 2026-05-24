@@ -8,6 +8,7 @@ import { useState } from "react";
 import { EvaluationsPanel } from "@/components/EvaluationsPanel";
 import { ObservationsPanel } from "@/components/ObservationsPanel";
 import { ProgressMatrix } from "@/components/ProgressMatrix";
+import { RevisionPanel } from "@/components/RevisionPanel";
 import { analytics, students } from "@/lib/api";
 
 type Tab = "matrix" | "evaluations" | "observations";
@@ -125,6 +126,8 @@ export default function StudentDetailPage() {
           </div>
         </div>
       ) : null}
+
+      <RevisionPanel studentId={studentId} />
 
       <div className="qp-tabs">
         <button

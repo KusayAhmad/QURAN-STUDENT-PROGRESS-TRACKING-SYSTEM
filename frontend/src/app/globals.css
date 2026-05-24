@@ -645,3 +645,40 @@ button.qp-status:hover {
   top: 0;
   z-index: 59; /* below the offline banner (60), above everything else */
 }
+
+
+/* ---- Revision suggestion reason chips (§12-C) ----
+   Small pill-shaped tags that show why a surah is suggested for revision.
+   Color encoding mirrors the memorization status palette so weak/review
+   stand out as urgent and stale-mastered reads as a softer reminder. */
+.qp-revision-reason {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+.qp-revision-reason-weak {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--status-weak);
+}
+.qp-revision-reason-review_required {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--status-review-required);
+}
+.qp-revision-reason-stale_mastered {
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--status-mastered);
+}
+.qp-revision-reason-stale_strong {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--status-strong);
+}
+.qp-revision-reason-in_progress {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--status-in-progress);
+}

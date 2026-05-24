@@ -15,6 +15,7 @@ import type {
   PaginatedStudents,
   Progress,
   ProgressHistoryEntry,
+  RevisionSuggestionList,
   SchoolAnalytics,
   Student,
   StudentAnalytics,
@@ -246,6 +247,16 @@ export const analytics = {
   student: (studentId: string) =>
     request<StudentAnalytics>(`/analytics/student/${studentId}`),
   school: () => request<SchoolAnalytics>("/analytics/school"),
+};
+
+// ---- Revision suggestions (§12-C) ----
+export const revision = {
+  suggest: (studentId: string, limit?: number) => {
+    const qs = limit ? `?limit=${limit}` : "";
+    return request<RevisionSuggestionList>(
+      `/students/${studentId}/revision-suggestions${qs}`,
+    );
+  },
 };
 
 // ---- Admin ----

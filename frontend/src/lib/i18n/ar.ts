@@ -112,6 +112,21 @@ export const ar: Record<keyof typeof en, string> = {
   "pwa.offlineDesc":
     "القراءة لا تزال تعمل من الذاكرة المؤقتة. لا يمكن حفظ التغييرات الجديدة حتى تعود للاتصال.",
 
+  // Revision suggestions (§12-C)
+  "revision.title": "مراجعات مقترحة",
+  "revision.subtitle": "سور تحتاج إلى مراجعة، مرتبة حسب الأولوية.",
+  "revision.empty": "لا توجد مراجعات مطلوبة حاليًا. أحسنت!",
+  "revision.loading": "جاري حساب المقترحات...",
+  "revision.daysAgo": "منذ {days} يوم",
+  "revision.neverReviewed": "لم تُراجع من قبل",
+  "revision.completion": "اكتمل {percent}%",
+  // Reason labels
+  "revision.reason.WEAK": "ضعيف — يحتاج إلى تثبيت",
+  "revision.reason.REVIEW_REQUIRED": "محدد للمراجعة",
+  "revision.reason.STALE_MASTERED": "متقن لكن لم يُراجع مؤخرًا",
+  "revision.reason.STALE_STRONG": "قوي لكن لم يُراجع مؤخرًا",
+  "revision.reason.IN_PROGRESS": "تابع التقدم في هذه السورة",
+
   // Language switcher
   "lang.toggle": "اللغة",
 };

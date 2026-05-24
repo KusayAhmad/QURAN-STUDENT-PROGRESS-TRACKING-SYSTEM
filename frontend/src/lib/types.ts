@@ -189,3 +189,29 @@ export interface SchoolAnalytics {
   avg_completion_pct: number;
   counts_by_status: StatusCounts;
 }
+
+// ---- Revision suggestions (§12-C) ----
+export type RevisionReason =
+  | "WEAK"
+  | "REVIEW_REQUIRED"
+  | "STALE_MASTERED"
+  | "STALE_STRONG"
+  | "IN_PROGRESS";
+
+export interface RevisionSuggestion {
+  surah_id: number;
+  surah_name_en: string;
+  surah_name_ar: string;
+  current_status: MemorizationStatus;
+  completion_percent: number;
+  last_reviewed_at: string | null;
+  days_since_review: number | null;
+  reason: RevisionReason;
+  priority_score: number;
+}
+
+export interface RevisionSuggestionList {
+  student_id: string;
+  generated_at: string;
+  suggestions: RevisionSuggestion[];
+}

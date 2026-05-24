@@ -57,6 +57,7 @@ export function ProgressMatrix({ studentId }: { studentId: string }) {
       qc.invalidateQueries({ queryKey: ["progress", studentId] });
       qc.invalidateQueries({ queryKey: ["analytics", "student", studentId] });
       qc.invalidateQueries({ queryKey: ["analytics", "school"] });
+      qc.invalidateQueries({ queryKey: ["revision", studentId] });
       setEditing(null);
     },
   });
