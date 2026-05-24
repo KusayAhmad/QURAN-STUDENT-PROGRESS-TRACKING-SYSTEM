@@ -14,6 +14,29 @@ const TYPES: { value: EvaluationType; label: string }[] = [
   { value: "OTHER", label: "Other" },
 ];
 
+function ScoreInput({
+  label,
+  value,
+  set,
+}: {
+  label: string;
+  value: string;
+  set: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label>{label}</label>
+      <input
+        type="number"
+        min={0}
+        max={100}
+        value={value}
+        onChange={(e) => set(e.target.value)}
+      />
+    </div>
+  );
+}
+
 export function EvaluationsPanel({ studentId }: { studentId: string }) {
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
@@ -215,29 +238,6 @@ function EvaluationFormModal({
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     mutation.mutate();
-  }
-
-  function ScoreInput({
-    label,
-    value,
-    set,
-  }: {
-    label: string;
-    value: string;
-    set: (v: string) => void;
-  }) {
-    return (
-      <div>
-        <label>{label}</label>
-        <input
-          type="number"
-          min={0}
-          max={100}
-          value={value}
-          onChange={(e) => set(e.target.value)}
-        />
-      </div>
-    );
   }
 
   return (

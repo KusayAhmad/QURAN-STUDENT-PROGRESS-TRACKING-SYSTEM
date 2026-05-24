@@ -184,12 +184,11 @@ just require `SchoolUser` (any role + has school).
 - No analytics caching yet — every `/analytics/...` request hits Postgres.
   Redis-backed read-through caching is planned for Phase-2 once query volume
   warrants it.
-- No public CRUD for users yet (only `GET /admin/users`); creating teacher
-  accounts still requires the seed script. Full admin user management
-  (create/disable/role change) is a Phase-2 task.
-- Frontend is a skeleton — the Quran matrix UI, login form, student profile,
-  and admin screens are not yet built. The backend is feature-complete for
-  MVP-3 and is the priority of the next slice.
+- Admin user management (create, update role/status, password reset) is
+  implemented via `POST /admin/users` and `PUT /admin/users/{id}`.
+- Frontend is fully functional — login, dashboard, student profiles, Quran
+  matrix (single-student and multi-student grid), evaluations, observations,
+  classes, admin user CRUD, Excel import, and notifications are all built.
 
 
 
