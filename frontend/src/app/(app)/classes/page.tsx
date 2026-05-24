@@ -37,10 +37,10 @@ export default function ClassesPage() {
           marginBottom: 16,
         }}
       >
-        <h1 style={{ margin: 0 }}>Classes</h1>
+        <h1 style={{ margin: 0 }}>{t("classes.title")}</h1>
         {isAdmin ? (
           <button className="qp-btn" onClick={() => setShowCreate(true)}>
-            New class
+            {t("classes.new")}
           </button>
         ) : null}
       </div>
@@ -50,15 +50,15 @@ export default function ClassesPage() {
           <p style={{ padding: 16 }}>{t("common.loading")}</p>
         ) : listQuery.data && listQuery.data.length === 0 ? (
           <p style={{ padding: 16, color: "var(--color-muted)" }}>
-            No classes yet.{isAdmin ? " Click \"New class\" to create one." : ""}
+            {isAdmin ? t("classes.emptyAdmin") : t("classes.empty")}
           </p>
         ) : (
           <table className="qp-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Academic Year</th>
-                <th>Actions</th>
+                <th>{t("classes.colName")}</th>
+                <th>{t("classes.colYear")}</th>
+                <th>{t("classes.colActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -74,7 +74,7 @@ export default function ClassesPage() {
                         className="qp-btn-ghost"
                         onClick={() => setAssigning(c)}
                       >
-                        Assign students
+                        {t("classes.assignStudents")}
                       </button>
                       {isAdmin ? (
                         <>
@@ -88,7 +88,14 @@ export default function ClassesPage() {
                             className="qp-btn-ghost"
                             style={{ color: "var(--color-danger)" }}
                             onClick={() => {
-                              if (confirm(`Delete class "${c.name}"?`))
+                              if (
+                                confirm(
+                                  t("classes.deleteConfirm").replace(
+                                    "{name}",
+                                    c.name,
+                                  ),
+                                )
+                              )
                                 removeMut.mutate(c.id);
                             }}
                           >
@@ -165,14 +172,14 @@ function ClassFormModal({
   return (
     <div className="qp-overlay" onClick={onClose}>
       <div className="qp-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>{existing ? "Edit class" : "New class"}</h2>
+        <h2>{existing ? t("classes.editClass") : t("classes.newClass")}</h2>
         <form onSubmit={handleSubmit} className="qp-form">
           <div>
-            <label>Class name</label>
+            <label>{t("classes.className")}</label>
             <input required value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <label>Academic year</label>
+            <label>{t("classes.academicYear")}</label>
             <input required value={year} onChange={(e) => setYear(e.target.value)} />
           </div>
           {mutation.error ? (
@@ -202,15 +209,17 @@ function AssignStudentsModal({
   const qc = useQueryClient();
   const t = useT();
 
-  // Load ALL students (not just this class) so we can show assignment toggles
+  // Load ALL students including archived so admins can manage membership
+  // for archived students who may still be assigned to a class.
   const studentsQuery = useQuery({
     queryKey: ["students", "all-for-assign"],
-    queryFn: () => students.list({ limit: 200 }),
+    queryFn: () => students.list({ limit: 200, include_archived: true }),
   });
 
   const assignMut = useMutation({
+    // Use a properly typed payload — `class_id` is part of StudentUpdate.
     mutationFn: (vars: { studentId: string; classId: string | null }) =>
-      students.update(vars.studentId, { class_id: vars.classId } as any),
+      students.update(vars.studentId, { class_id: vars.classId }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["students"] });
       qc.invalidateQueries({ queryKey: ["matrix"] });
@@ -228,9 +237,11 @@ function AssignStudentsModal({
         style={{ maxWidth: 600, maxHeight: "80vh", overflow: "auto" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2>Assign students to {classItem.name}</h2>
+        <h2>
+          {t("classes.assignTitle").replace("{name}", classItem.name)}
+        </h2>
         <p style={{ color: "var(--color-muted)", marginTop: 0 }}>
-          Click a student to add/remove them from this class.
+          {t("classes.assignHint")}
         </p>
 
         {studentsQuery.isLoading ? (
@@ -238,10 +249,10 @@ function AssignStudentsModal({
         ) : (
           <>
             <h3 style={{ fontSize: "0.95rem", marginTop: 16 }}>
-              In this class ({inClass.length})
+              {t("classes.inClass").replace("{count}", String(inClass.length))}
             </h3>
             {inClass.length === 0 ? (
-              <p style={{ color: "var(--color-muted)" }}>None yet.</p>
+              <p style={{ color: "var(--color-muted)" }}>{t("classes.noneInClass")}</p>
             ) : (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {inClass.map((s) => (
@@ -253,7 +264,7 @@ function AssignStudentsModal({
                     onClick={() =>
                       assignMut.mutate({ studentId: s.id, classId: null })
                     }
-                    title="Click to remove from class"
+                    title={t("classes.removeHint")}
                   >
                     {s.full_name} ✕
                   </button>
@@ -262,11 +273,11 @@ function AssignStudentsModal({
             )}
 
             <h3 style={{ fontSize: "0.95rem", marginTop: 16 }}>
-              Available ({notInClass.length})
+              {t("classes.available").replace("{count}", String(notInClass.length))}
             </h3>
             {notInClass.length === 0 ? (
               <p style={{ color: "var(--color-muted)" }}>
-                All students are already in this class.
+                {t("classes.allAssigned")}
               </p>
             ) : (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -279,7 +290,7 @@ function AssignStudentsModal({
                     onClick={() =>
                       assignMut.mutate({ studentId: s.id, classId: classItem.id })
                     }
-                    title="Click to add to class"
+                    title={t("classes.addHint")}
                   >
                     {s.full_name} +
                   </button>
